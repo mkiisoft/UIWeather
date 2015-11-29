@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">UIWeather</string>
+
+    <!-- paging gridview -->
+    <string name="loading">Loading&#8230;</string>
+
+    <!-- search box and results -->
+    <string name="results">Your search did not get results</string>
+    <string name="searchbox">The search field can\'t be empty</string>
+    <string name="emptystring"></string>
+
+    <!-- api URLs -->
+    <string name="apiurl">http://ajax.googleapis.com/ajax/services/search/images?v=1.0&amp;rsz=8&amp;safe=active&amp;as_filetype=jpg&amp;q=</string>
+    <string name="api_url_query">http://catchweather.com/api/query.php?key=ABARAJAMEENLABANIERANENA&amp;format=json&amp;q=</string>
+    <string name="api_url_woeid">http://catchweather.com/api/forecast.php?key=ABARAJAMEENLABANIERANENA&amp;format=json2&amp;woeid=</string>
+
+    <!-- image full -->
+    <string name="copyright">Copyright protected image. Can\'t be modify.</string>
+    <string name="undo">Cancel</string>
+    <string name="crop">Crop Image</string>
+
+    <!-- image crop -->
+    <string name="cancel">Return</string>
+    <string name="save">Save</string>
+    <string name="saving_image">Saving image</string>
+    <string name="preparing_card">Preparing card</string>
+    <string name="no_storage_card">No storage card</string>
+    <string name="not_enough_space">Not enough space</string>
+
+    <!-- image error -->
+    <string name="img_error">Image broken</string>
+
+    <!-- app intro -->
+    <string name="skip_button">SKIP</string>
+    <string name="done_button">DONE</string>
+
+    <!-- alert dialog -->
+    <string name="select_location">Select Location</string>
+    <string name="cancel_simple">Cancel</string>
+
+    <!-- api responses -->
+    <string name="try_again">"Try again in a few minutes"</string>
+
+    <!-- edit text -->
+    <string name="search_location">Search location</string>
+
+    <!-- connection -->
+    <string name="connection">No connection available. Try again later.</string>
+    <string name="no_results">Try to be more specific in your search</string>
+
+</resources>
