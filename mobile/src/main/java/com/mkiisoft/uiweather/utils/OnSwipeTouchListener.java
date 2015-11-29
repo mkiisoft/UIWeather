@@ -1,6 +1,7 @@
 package com.mkiisoft.uiweather.utils;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -53,6 +54,7 @@ public class OnSwipeTouchListener implements OnTouchListener {
                         onSwipeTop();
                     }
                 }
+
                 result = true;
 
             } catch (Exception exception) {
@@ -73,6 +75,7 @@ public class OnSwipeTouchListener implements OnTouchListener {
 
     public void onSwipeBottom() {
     }
+
     public void onTouchDown() {
     }
 }

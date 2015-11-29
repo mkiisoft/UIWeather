@@ -102,7 +102,7 @@ public class WearCommunicationActivity extends Activity implements
         //setContentView(R.layout.activity_draw_action_mobile);
         //setupViews();
 
-        // Stores DataItems received by the local broadcaster or from the paired watch.
+        // Stores DataItems received by the local broadcaster or from the paired ic_watch.
         mDataItemListAdapter = new DataItemAdapter(this, android.R.layout.simple_list_item_1);
         mDataItemList.setAdapter(mDataItemListAdapter);
 

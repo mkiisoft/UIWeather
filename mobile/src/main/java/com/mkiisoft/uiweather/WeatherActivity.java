@@ -4,6 +4,8 @@ import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -12,15 +14,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -44,9 +44,23 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 import com.mkiisoft.uiweather.adapter.ListViewAdapter;
 import com.mkiisoft.uiweather.utils.AutoFitTextView;
 import com.mkiisoft.uiweather.utils.CubicBezierInterpolator;
@@ -73,6 +87,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import cz.msebera.android.httpclient.Header;
@@ -84,7 +99,11 @@ import io.codetail.animation.SupportAnimator.SimpleAnimatorListener;
  * Created by mariano-zorrilla on 17/11/15.
  */
 
-public class WeatherActivity extends AppCompatActivity {
+public class WeatherActivity extends AppCompatActivity implements DataApi.DataListener,
+        MessageApi.MessageListener,
+        NodeApi.NodeListener,
+        ConnectionCallbacks,
+        OnConnectionFailedListener {
 
     // API Response
     private JSONObject jsonResponse;
@@ -92,7 +111,7 @@ public class WeatherActivity extends AppCompatActivity {
     // Array list from APIs
     final ArrayList arraylist = new ArrayList<>();
     final ArrayList arrayhistory = new ArrayList<>(11);
-    final ArrayList arraylistForecast = new ArrayList<>();
+    final ArrayList arraylistForecast = new ArrayList<>(5);
 
     // HashMap to get Key/Value
     HashMap<String, String> result = new HashMap<>();
@@ -173,10 +192,33 @@ public class WeatherActivity extends AppCompatActivity {
     private int mWoeid;
     private int mCount = 0;
 
+    // Wear Connection
+    private GoogleApiClient mGoogleApiClient;
+    private boolean mResolvingError = false;
+    private boolean mIsConnected    = false;
+
+    private static final String TAG = "Wear";
+
+    /** Request code for launching the Intent to resolve Google Play services errors. */
+    private static final int REQUEST_RESOLVE_ERROR = 1000;
+
+    private static final String START_ACTIVITY_PATH   = "/start-activity";
+    private static final String SEND_TEMP_PATH        = "/send-temp";
+    private static final String SEND_CITY_PATH        = "/send-city";
+    private static final String SEND_CODE_PATH        = "/send-code";
+    private static final String SEND_BITMAP_PATH      = "/send-bitmap";
+    private static final String SEND_MODEL_PATH       = "/send-model";
+
+    private static final int    REQUEST_IMAGE_CAPTURE = 1;
+
+    private LinearLayout mWearLayout;
+    private TextView     mWearModel;
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        setContentView(R.layout.activity_weather);
+        setContentView(R.layout.activity_weather2);
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().hide();
@@ -189,6 +231,12 @@ public class WeatherActivity extends AppCompatActivity {
                 mAction.setTitle("");
             }
         }
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
 
         mApiCall = new Utils.ApiCall();
         mApiCatch = new Utils.ApiCallSync();
@@ -210,7 +258,7 @@ public class WeatherActivity extends AppCompatActivity {
         // animated views swipe up and down
         mMainCity  = (RelativeLayout) findViewById(R.id.city_main);
         mMainTemp  = (RelativeLayout) findViewById(R.id.temp_main);
-        mMainBtn   = (FrameLayout) findViewById(R.id.btn_main);
+        mMainBtn   = (FrameLayout)    findViewById(R.id.btn_main);
         mChildTemp = (RelativeLayout) findViewById(R.id.temp_child);
 
         mChildTemp.setAlpha(0);
@@ -277,6 +325,7 @@ public class WeatherActivity extends AppCompatActivity {
             }
 
             public void onSwipeBottom() {
+
                 if (mChildTemp.isEnabled()) {
                     swipeDown(true);
                 }
@@ -328,89 +377,12 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
 
+        mWearLayout = (LinearLayout) findViewById(R.id.wear_connect_layout);
+        mWearModel  = (TextView)     findViewById(R.id.wear_model_text);
+
+        mWearModel.setTypeface(thin);
+
         edit = (EditText) findViewById(R.id.search_box);
-
-        /**
-         *
-         * Real time search auto complete
-         *
-         */
-
-//        edit.addTextChangedListener(new TextWatcher() {
-//
-//            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//                didChange = false;
-//            }
-//            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                if(count > 1){
-//                    didChange = true;
-//                } else {
-//                    didChange = false;
-//                }
-//            }
-//
-//            private Timer timer = new Timer();
-//            private final long DELAY = 800;
-//
-//            @Override
-//            public void afterTextChanged(final Editable s) {
-//
-//                final String queryURL = edit.getText().toString();
-//
-//                if (didChange){
-//                    mApiCatch.cancelRequest(true);
-//                    timer.cancel();
-//                    timer = new Timer();
-//                    timer.schedule(
-//                            new TimerTask() {
-//                                @Override
-//                                public void run() {
-//                                    mApiCatch.get(mApiCatchWeather + queryURL, null, new JsonHttpResponseHandler() {
-//
-//                                        @Override
-//                                        public void onStart() {
-//
-//                                        }
-//
-//                                        @Override
-//                                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-//                                            try {
-//
-//                                                JSONObject getResponse = new JSONObject("" + response);
-//                                                JSONObject getPlaces = getResponse.getJSONObject("places");
-//                                                int getTotal = getPlaces.getInt("total");
-//                                                Log.e("total", "" + getTotal);
-//
-//                                                JSONArray getPlace = getPlaces.getJSONArray("place");
-//                                                for (int i = 0; i < getPlace.length(); i++) {
-//
-//                                                    JSONObject placeObj = getPlace.getJSONObject(i);
-//                                                    JSONObject attrsObj = placeObj.getJSONObject("country attrs");
-//                                                    String name  = placeObj.getString("name");
-//                                                    int    woeid = attrsObj.getInt("woeid");
-//
-//                                                    Log.e("name", name + " with ID: " + ""+woeid);
-//                                                }
-//
-//                                            } catch (JSONException e) {
-//                                                e.printStackTrace();
-//                                            }
-//                                        }
-//
-//
-//                                        @Override
-//                                        public void onFailure(int statusCode, Header[] headers, Throwable e, JSONObject errorResponse) {
-//
-//                                        }
-//
-//                                    });
-//                                }
-//                            },
-//                            DELAY
-//                    );
-//                }
-//            }
-//        });
 
         edit.setOnKeyListener(new View.OnKeyListener() {
 
@@ -436,7 +408,7 @@ public class WeatherActivity extends AppCompatActivity {
         mTextTemp.setTypeface(thin);
         mTextType.setTypeface(font);
 
-//        if (Utils.determineScreenDensity(WeatherActivity.this) <= 280) {
+//        if (Utils.determineScreenDensity(WeatherActivity.this) <= 2) {
 //            mTextTemp.setTextSize(60);
 //            mTextType.setTextSize(40);
 //        }
@@ -498,9 +470,14 @@ public class WeatherActivity extends AppCompatActivity {
                     mAdapterHistory.notifyDataSetChanged();
                     arraylistForecast.clear();
                     mAdapter.notifyDataSetChanged();
-                    arraylist.clear();
-                    result.clear();
-                    data.clear();
+                    if(data != null){
+                        data.clear();
+                    } else if (result != null) {
+                        result.clear();
+                    } else if (arraylist != null){
+                        arraylist.clear();
+                    }
+
                     initViews();
                     searchReset();
 
@@ -574,6 +551,7 @@ public class WeatherActivity extends AppCompatActivity {
                         mCountry = placeObj.getString("country");
                         mCode = attrsObj.getString("code");
                         mWoeid = attrsObj.getInt("woeid");
+
                     } else {
                         for (int i = 0; i < getPlace.length(); i++) {
 
@@ -712,6 +690,7 @@ public class WeatherActivity extends AppCompatActivity {
                                                 float percent = (float) textWidth / 130 * 100;
                                                 int newWidth = (int) percent;
                                                 final Bitmap finalBitmap = (Bitmap) resource;
+
                                                 mWeatherImage.animate().alpha(0.2f).setDuration(400).withEndAction(new Runnable() {
                                                     @Override
                                                     public void run() {
@@ -734,6 +713,16 @@ public class WeatherActivity extends AppCompatActivity {
                                                 resizeAnimation.setStartOffset(400);
                                                 mLineColor.startAnimation(resizeAnimation);
 
+                                                mLineColor.post(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        if(mIsConnected){
+                                                            sendPhoto(Utils.toAsset(finalBitmap));
+                                                            Log.e("asset", ""+Utils.toAsset(finalBitmap));
+                                                            sendMessageWear(SEND_CITY_PATH, mName + " " + mCode);
+                                                        }
+                                                    }
+                                                });
                                             }
 
                                             @Override
@@ -766,6 +755,7 @@ public class WeatherActivity extends AppCompatActivity {
 
             @Override
             public void onStart() {
+
                 mProgress.animate().alpha(0).setDuration(400).withEndAction(new Runnable() {
                     @Override
                     public void run() {
@@ -801,6 +791,8 @@ public class WeatherActivity extends AppCompatActivity {
                         forecastHash.put("high", forecastObj.getString("high"));
                         forecastHash.put("low", forecastObj.getString("low"));
 
+                        Log.e("code", forecastObj.getString("code"));
+
                         arraylistForecast.add(forecastHash);
 
                     }
@@ -826,6 +818,8 @@ public class WeatherActivity extends AppCompatActivity {
                                 mWeatherIcon.addView(cloudSunView);
                             } else if (codes >= 37 && codes <= 39) {
                                 mWeatherIcon.addView(thunderView);
+                            } else if (codes == 45) {
+                                mWeatherIcon.addView(thunderView);
                             } else if (codes == 4) {
                                 mWeatherIcon.addView(thunderView);
                             } else if (codes == 24) {
@@ -843,6 +837,9 @@ public class WeatherActivity extends AppCompatActivity {
                             mWeatherIcon.setTranslationX(-mWeatherIcon.getWidth());
                             mWeatherIcon.animate().alpha(1f).translationX(0).setDuration(1000).setInterpolator(new DecelerateInterpolator());
                             Utils.animateTextView(0, Integer.parseInt(temp), mTextTemp);
+
+                            sendMessageWear(SEND_TEMP_PATH, temp + Celsius);
+                            sendMessageWear(SEND_CODE_PATH, code);
 
                             mTextTemp.setTranslationY(+mTextTemp.getHeight());
                             mTextType.setTranslationY(-mTextType.getHeight());
@@ -1042,6 +1039,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void LoopAnimTop(final TextView view) {
+        sendStartActivityMessage(START_ACTIVITY_PATH);
         view.animate().alpha(0).translationY(-view.getHeight()).setDuration(500).setInterpolator(new AccelerateDecelerateInterpolator()).withEndAction(new Runnable() {
             @Override
             public void run() {
@@ -1139,6 +1137,9 @@ public class WeatherActivity extends AppCompatActivity {
 
     public void swipeUp(boolean enabled) {
         if (enabled) {
+            if(mIsConnected){
+                hideWear();
+            }
             mAdapter.notifyDataSetChanged();
             mMainCity.animate().translationY(-mMainBg.getHeight()).setDuration(600).setStartDelay(200).setInterpolator(new AccelerateDecelerateInterpolator());
             mMainTemp.animate().translationY(-mMainBg.getHeight()).setDuration(600).setStartDelay(400).setInterpolator(new AccelerateDecelerateInterpolator());
@@ -1181,12 +1182,192 @@ public class WeatherActivity extends AppCompatActivity {
                             mChildTemp.setTranslationY(+mChildTemp.getHeight());
                             mListForecast.setTranslationY(+mListForecast.getHeight());
                             mListForecast.setEnabled(false);
+                            if(mIsConnected){
+                                showWear();
+                            }
                         }
                     });
             mMainTemp.animate().translationY(0).setDuration(600).setStartDelay(400).setInterpolator(new AccelerateDecelerateInterpolator());
             mMainBtn.animate().translationY(0).setDuration(600).setStartDelay(500).setInterpolator(new AccelerateDecelerateInterpolator());
             mMainCity.animate().translationY(0).setDuration(600).setStartDelay(600).setInterpolator(new AccelerateDecelerateInterpolator());
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!mResolvingError) {
+            mGoogleApiClient.connect();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        if (!mResolvingError) {
+            Wearable.DataApi.removeListener(mGoogleApiClient, this);
+            Wearable.MessageApi.removeListener(mGoogleApiClient, this);
+            Wearable.NodeApi.removeListener(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
+        }
+        super.onStop();
+    }
+
+    @Override //ConnectionCallbacks
+    public void onConnected(Bundle connectionHint) {
+        Log.e(TAG, "Google API Client was connected");
+        mResolvingError = false;
+        Wearable.DataApi.addListener(mGoogleApiClient, this);
+        Wearable.MessageApi.addListener(mGoogleApiClient, this);
+        Wearable.NodeApi.addListener(mGoogleApiClient, this);
+    }
+
+    @Override //ConnectionCallbacks
+    public void onConnectionSuspended(int cause) {
+        Log.e(TAG, "Connection to Google API client was suspended");
+    }
+
+    @Override //OnConnectionFailedListener
+    public void onConnectionFailed(ConnectionResult result) {
+        if (mResolvingError) {
+            // Already attempting to resolve an error.
+            return;
+        } else if (result.hasResolution()) {
+            try {
+                result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
+            } catch (IntentSender.SendIntentException e) {
+                // There was an error with the resolution intent. Try again.
+                mGoogleApiClient.connect();
+            }
+        } else {
+            Log.e(TAG, "Connection to Google API client has failed");
+            Wearable.DataApi.removeListener(mGoogleApiClient, this);
+            Wearable.MessageApi.removeListener(mGoogleApiClient, this);
+            Wearable.NodeApi.removeListener(mGoogleApiClient, this);
+        }
+    }
+
+    @Override //DataListener
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.e(TAG, "onDataChanged: " + dataEvents);
+    }
+
+    @Override //MessageListener
+    public void onMessageReceived(final MessageEvent messageEvent) {
+
+        if (messageEvent.getPath().equalsIgnoreCase(SEND_MODEL_PATH)) {
+            Log.e("modelo", new String(messageEvent.getData()));
+
+            mIsConnected = true;
+
+            String Unknown = new String(messageEvent.getData());
+
+            if (Unknown.contains("Unknown")) {
+                mWearModel.setText("Android Wear");
+            } else {
+                mWearModel.setText(new String(messageEvent.getData()));
+            }
+
+            showWear();
+        }
+
+    }
+
+    @Override //NodeListener
+    public void onPeerConnected(final Node peer) {
+        Log.e(TAG, "onPeerConnected: " + peer);
+        mIsConnected = true;
+        if(mWearLayout.getVisibility() == View.INVISIBLE){
+            showWear();
+        }
+
+    }
+
+    @Override //NodeListener
+    public void onPeerDisconnected(final Node peer) {
+        Log.e(TAG, "onPeerDisconnected: " + peer);
+        mIsConnected = false;
+        if(mWearLayout.getVisibility() == View.VISIBLE){
+            hideWear();
+        }
+    }
+
+    public void sendStartActivityMessage(String node) {
+        Wearable.MessageApi.sendMessage(
+                mGoogleApiClient, node, START_ACTIVITY_PATH, new byte[0]).setResultCallback(
+                new ResultCallback<MessageApi.SendMessageResult>() {
+                    @Override
+                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                        if (!sendMessageResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Failed to send message with status code: "
+                                    + sendMessageResult.getStatus().getStatusCode());
+                        }
+                    }
+                }
+        );
+    }
+
+    public void sendMessageWear( final String path, final String text ) {
+        new Thread( new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mGoogleApiClient ).await();
+                for(Node node : nodes.getNodes()) {
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
+                            mGoogleApiClient, node.getId(), path, text.getBytes() ).await();
+                }
+
+            }
+        }).start();
+    }
+
+    private void sendPhoto(Asset asset) {
+        PutDataMapRequest dataMap = PutDataMapRequest.create(SEND_BITMAP_PATH);
+        dataMap.getDataMap().putAsset(SEND_BITMAP_PATH, asset);
+        dataMap.getDataMap().putLong("time", new Date().getTime());
+        PutDataRequest request = dataMap.asPutDataRequest();
+        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                    @Override
+                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                        Log.e(TAG, "Sending image was successful: " + dataItemResult.getStatus()
+                                .isSuccess());
+                    }
+                });
+
+    }
+
+    private void showWear(){
+        mWearLayout.setTranslationX(+mWearLayout.getWidth());
+        mWearLayout.setVisibility(View.VISIBLE);
+        mWearLayout.animate().translationX(0).setDuration(500)
+                .setInterpolator(new DecelerateInterpolator())
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        mWearLayout.setTranslationX(0);
+                    }
+                });
+    }
+
+    private void hideWear(){
+        mWearLayout.animate().setDuration(500).translationX(+mWearLayout.getWidth())
+                .setInterpolator(new DecelerateInterpolator())
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        mWearLayout.setVisibility(View.INVISIBLE);
+                    }
+                });
     }
 
 }

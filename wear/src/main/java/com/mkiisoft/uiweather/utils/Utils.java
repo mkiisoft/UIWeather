@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
@@ -19,11 +20,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
 import com.google.android.gms.wearable.Asset;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-import com.loopj.android.http.ResponseHandlerInterface;
-import com.loopj.android.http.SyncHttpClient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,12 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import cz.msebera.android.httpclient.Header;
 
 public class Utils {
 
@@ -70,14 +61,6 @@ public class Utils {
 
     int value;
     Conditions conditions = Conditions.fromInt(value);
-
-    public static HashMap<String, String> convertHeadersToHashMap(Header[] headers) {
-        HashMap<String, String> result = new HashMap<String, String>(headers.length);
-        for (Header header : headers) {
-            result.put(header.getName(), header.getValue());
-        }
-        return result;
-    }
 
     public static void saveFile( File filename, byte[] data ) throws IOException {
         FileOutputStream fOut = new FileOutputStream( filename );
@@ -286,18 +269,7 @@ public class Utils {
         return temp;
     }
 
-    public static Bitmap StringToBitMap(String encodedString){
-        try {
-            byte [] encodeByte=Base64.decode(encodedString,Base64.DEFAULT);
-            Bitmap bitmap= BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
-            return bitmap;
-        } catch(Exception e) {
-            e.getMessage();
-            return null;
-        }
-    }
-
-    public static Asset toAsset(Bitmap bitmap) {
+    private static Asset toAsset(Bitmap bitmap) {
         ByteArrayOutputStream byteStream = null;
         try {
             byteStream = new ByteArrayOutputStream();
@@ -314,158 +286,30 @@ public class Utils {
         }
     }
 
-    /**
-     *
-     * API Call for GET, PUT, POST, DELETE Http responses
-     *
-     */
-
-    public static class ApiCall {
-
-        private AsyncHttpClient client = new AsyncHttpClient();
-
-        public void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.get(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        public void get(Context context, String url, RequestParams params, ResponseHandlerInterface responseHandlerInterface) {
-            client.get(context, getAbsoluteUrl(url), params, responseHandlerInterface);
-        }
-
-        public void put(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.put(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        public void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.post(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        public void delete(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.delete(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        private String getAbsoluteUrl(String relativeUrl) {
-            return relativeUrl;
-        }
-
-        public void cancelRequest(boolean cancel){
-            client.cancelAllRequests(cancel);
+    public static Bitmap StringToBitMap(String encodedString){
+        try {
+            byte [] encodeByte=Base64.decode(encodedString,Base64.DEFAULT);
+            Bitmap bitmap= BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
+            return bitmap;
+        } catch(Exception e) {
+            e.getMessage();
+            return null;
         }
     }
 
-    public static class ApiCallSync {
+    public static Bitmap getBitmapFromAsset(Context context, String filePath) {
+        AssetManager assetManager = context.getAssets();
 
-        private SyncHttpClient client = new SyncHttpClient();
-
-        public void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.get(getAbsoluteUrl(url), params, responseHandler);
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = assetManager.open(filePath);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            // handle exception
         }
 
-        public void get(Context context, String url, RequestParams params, ResponseHandlerInterface responseHandlerInterface) {
-            client.get(context, getAbsoluteUrl(url), params, responseHandlerInterface);
-        }
-
-        public void put(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.put(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        public void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.post(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        public void delete(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-            client.delete(getAbsoluteUrl(url), params, responseHandler);
-        }
-
-        private String getAbsoluteUrl(String relativeUrl) {
-            return relativeUrl;
-        }
-
-        public void cancelRequest(boolean cancel){
-            client.cancelAllRequests(cancel);
-        }
+        return bitmap;
     }
-
-    /**
-     *
-     * Real time search auto complete
-     *
-     */
-
-//        edit.addTextChangedListener(new TextWatcher() {
-//
-//            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//                didChange = false;
-//            }
-//            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                if(count > 1){
-//                    didChange = true;
-//                } else {
-//                    didChange = false;
-//                }
-//            }
-//
-//            private Timer timer = new Timer();
-//            private final long DELAY = 800;
-//
-//            @Override
-//            public void afterTextChanged(final Editable s) {
-//
-//                final String queryURL = edit.getText().toString();
-//
-//                if (didChange){
-//                    mApiCatch.cancelRequest(true);
-//                    timer.cancel();
-//                    timer = new Timer();
-//                    timer.schedule(
-//                            new TimerTask() {
-//                                @Override
-//                                public void run() {
-//                                    mApiCatch.get(mApiCatchWeather + queryURL, null, new JsonHttpResponseHandler() {
-//
-//                                        @Override
-//                                        public void onStart() {
-//
-//                                        }
-//
-//                                        @Override
-//                                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-//                                            try {
-//
-//                                                JSONObject getResponse = new JSONObject("" + response);
-//                                                JSONObject getPlaces = getResponse.getJSONObject("places");
-//                                                int getTotal = getPlaces.getInt("total");
-//                                                Log.e("total", "" + getTotal);
-//
-//                                                JSONArray getPlace = getPlaces.getJSONArray("place");
-//                                                for (int i = 0; i < getPlace.length(); i++) {
-//
-//                                                    JSONObject placeObj = getPlace.getJSONObject(i);
-//                                                    JSONObject attrsObj = placeObj.getJSONObject("country attrs");
-//                                                    String name  = placeObj.getString("name");
-//                                                    int    woeid = attrsObj.getInt("woeid");
-//
-//                                                    Log.e("name", name + " with ID: " + ""+woeid);
-//                                                }
-//
-//                                            } catch (JSONException e) {
-//                                                e.printStackTrace();
-//                                            }
-//                                        }
-//
-//
-//                                        @Override
-//                                        public void onFailure(int statusCode, Header[] headers, Throwable e, JSONObject errorResponse) {
-//
-//                                        }
-//
-//                                    });
-//                                }
-//                            },
-//                            DELAY
-//                    );
-//                }
-//            }
-//        });
 
 }

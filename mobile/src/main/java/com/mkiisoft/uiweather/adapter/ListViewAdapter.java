@@ -108,48 +108,48 @@ public class ListViewAdapter extends BaseAdapter {
 
         resultp = data.get(position);
 
-        SunView sunView              = new SunView(context);
-        WindView windView            = new WindView(context);
-        MoonView moonView            = new MoonView(context);
-        CloudView cloudView          = new CloudView(context);
-        CloudThunderView thunderView = new CloudThunderView(context);
-        CloudRainView rainView       = new CloudRainView(context);
-        CloudFogView fogView         = new CloudFogView(context);
-        CloudSunView cloudSunView    = new CloudSunView(context);
-        CloudMoonView cloudMoonView  = new CloudMoonView(context);
-        CloudSnowView cloudSnowView  = new CloudSnowView(context);
-
-        cloudView.setBgColor(Color.parseColor(white));
-        cloudView.setLayoutParams(params);
-
-        sunView.setBgColor(Color.parseColor(white));
-        sunView.setLayoutParams(params);
-
-        windView.setBgColor(Color.parseColor(white));
-        windView.setLayoutParams(params);
-
-        moonView.setBgColor(Color.parseColor(white));
-        moonView.setLayoutParams(params);
-
-        fogView.setBgColor(Color.parseColor(white));
-        fogView.setLayoutParams(params);
-
-        rainView.setBgColor(Color.parseColor(white));
-        rainView.setLayoutParams(params);
-
-        thunderView.setBgColor(Color.parseColor(white));
-        thunderView.setLayoutParams(params);
-
-        cloudSunView.setBgColor(Color.parseColor(white));
-        cloudSunView.setLayoutParams(params);
-
-        cloudMoonView.setBgColor(Color.parseColor(white));
-        cloudMoonView.setLayoutParams(params);
-
-        cloudSnowView.setBgColor(Color.parseColor(white));
-        cloudSnowView.setLayoutParams(params);
-
         if(resultp != null) {
+
+            SunView sunView              = new SunView(context);
+            WindView windView            = new WindView(context);
+            MoonView moonView            = new MoonView(context);
+            CloudView cloudView          = new CloudView(context);
+            CloudThunderView thunderView = new CloudThunderView(context);
+            CloudRainView rainView       = new CloudRainView(context);
+            CloudFogView fogView         = new CloudFogView(context);
+            CloudSunView cloudSunView    = new CloudSunView(context);
+            CloudMoonView cloudMoonView  = new CloudMoonView(context);
+            CloudSnowView cloudSnowView  = new CloudSnowView(context);
+
+            cloudView.setBgColor(Color.parseColor(white));
+            cloudView.setLayoutParams(params);
+
+            sunView.setBgColor(Color.parseColor(white));
+            sunView.setLayoutParams(params);
+
+            windView.setBgColor(Color.parseColor(white));
+            windView.setLayoutParams(params);
+
+            moonView.setBgColor(Color.parseColor(white));
+            moonView.setLayoutParams(params);
+
+            fogView.setBgColor(Color.parseColor(white));
+            fogView.setLayoutParams(params);
+
+            rainView.setBgColor(Color.parseColor(white));
+            rainView.setLayoutParams(params);
+
+            thunderView.setBgColor(Color.parseColor(white));
+            thunderView.setLayoutParams(params);
+
+            cloudSunView.setBgColor(Color.parseColor(white));
+            cloudSunView.setLayoutParams(params);
+
+            cloudMoonView.setBgColor(Color.parseColor(white));
+            cloudMoonView.setLayoutParams(params);
+
+            cloudSnowView.setBgColor(Color.parseColor(white));
+            cloudSnowView.setLayoutParams(params);
 
             viewHolder.mForecastIcon.removeAllViews();
 
@@ -182,6 +182,8 @@ public class ListViewAdapter extends BaseAdapter {
             } else if (codes >= 33 && codes <= 34) {
                 viewHolder.mForecastIcon.addView(cloudSunView);
             } else if (codes >= 37 && codes <= 39) {
+                viewHolder.mForecastIcon.addView(thunderView);
+            } else if (codes == 45) {
                 viewHolder.mForecastIcon.addView(thunderView);
             } else if (codes == 4) {
                 viewHolder.mForecastIcon.addView(thunderView);
