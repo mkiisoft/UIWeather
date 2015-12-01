@@ -15,6 +15,7 @@ Import project as issual with any other Android Studio project. This project doe
 # Changelog
 
 Beta update v0.2b
+Android Wear support
 
 # Features:
 
