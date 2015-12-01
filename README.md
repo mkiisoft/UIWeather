@@ -18,10 +18,11 @@ Beta update v0.2b
 
 # Features:
 
--Custom weather views
--Forecast
--from 3 to 5 days
-  -Depends on screen size
+* Custom Weather Views
+* Forecast
+* 
+  * From 3 to 5 days
+    * Depends on screen size
 -Search history
 -Delete single history item
 -Temperature convertion
