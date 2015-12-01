@@ -20,27 +20,27 @@ Beta update v0.2b
 
 -Custom weather views
 -Forecast
---from 3 to 5 days
----Depends on screen size
+-from 3 to 5 days
+-Depends on screen size
 -Search history
---Delete single history item
+-Delete single history item
 -Temperature convertion
---Celsius to Fahrenheit
---Fahrenheit to Celsius
+-Celsius to Fahrenheit
+-Fahrenheit to Celsius
 -Google Images API (deprecated)
 -KeySaver (light & fast SharedPreferences)
---Last search location save cache
+-Last search location save cache
 -Circular reveal animation
 -Gesture Listener
---left/right image switcher
---up/down    forecast
+-left/right image switcher
+-up/down    forecast
 -Weather API
---Query search
---Single item info
+-Query search
+-Single item info
 -Android WEAR support
---Phone to Wear - Wear to Phone service background communication
---Asset communication to send images
---DeviceName (Includes all Android Wear to 12/01/2015)
+-Phone to Wear - Wear to Phone service background communication
+-Asset communication to send images
+-DeviceName (Includes all Android Wear to 12/01/2015)
 
 # Next Updates:
 
