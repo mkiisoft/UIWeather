@@ -868,7 +868,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                                 mWeatherIcon.addView(moonView);
                             } else if ((codes >= 5 && codes <= 8) || (codes >= 13 && codes <= 19)) {
                                 mWeatherIcon.addView(cloudSnowView);
-                            }else if (codes == 46) {
+                            } else if (codes == 46) {
                                 mWeatherIcon.addView(cloudSnowView);
                             } else if (codes == 3200) {
                                 mWeatherIcon.addView(sunView);
