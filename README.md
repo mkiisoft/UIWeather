@@ -3,9 +3,8 @@ Material Design Weather
 =================
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/mkiisoft/KeySaver) [![GitHub version](https://d25lcipzij17d.cloudfront.net/badge.svg?id=gh&type=6&v=0.2b&x2=0)](https://github.com/mkiisoft/KeySaver/blob/master/KeySaver.jar) [![Android](https://img.shields.io/badge/language-Android-blue.svg)](https://github.com/mkiisoft/KeySaver) ![API](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)
 
-Light & Fast Shared Preference. Only 2Kb
-
-KeySaver is a data store simplifier to save, get, check and remove keys and values with a single line.
+Open Source project for the community. First version have no/little inner documentation. DOC's will be available soon.
+Material Design from Android 4.1+ (API 16+)
 
 # Install
 
@@ -19,7 +18,38 @@ Beta update v0.2b
 
 # Features:
 
+-Custom weather views
+-Forecast
+    -from 3 to 5 days
+        -Depends on screen size
+-Search history
+    -Delete single history item
+-Temperature convertion
+    -Celsius to Fahrenheit
+    -Fahrenheit to Celsius
+-Google Images API (deprecated)
+-KeySaver (light & fast SharedPreferences)
+    -Last search location save cache
+-Circular reveal animation
+-Gesture Listener
+    -left/right image switcher
+    -up/down    forecast
+-Weather API
+    -Query search
+    -Single item info
+-Android WEAR support
+    -Phone to Wear - Wear to Phone service background communication
+    -Asset communication to send images
+    -DeviceName (Includes all Android Wear to 12/01/2015)
 
+# Next Updates:
+
+-Intro wizard
+    -Settings:
+        -Celsius or Fahrenheit
+        -Allow Geo location
+-Better API response
+-Google Maps Geo Position
 
 License
 --------
