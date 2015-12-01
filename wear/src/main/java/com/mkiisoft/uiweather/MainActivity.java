@@ -472,7 +472,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
             mWeatherIcon.addView(moonView);
         } else if ((code >= 5 && code <= 8) || (code >= 13 && code <= 19)) {
             mWeatherIcon.addView(cloudSnowView);
-        } else if (codes == 46) {
+        } else if (code == 46) {
             mWeatherIcon.addView(cloudSnowView);
         } else if (code == 3200) {
             mWeatherIcon.addView(sunView);
