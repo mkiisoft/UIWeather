@@ -39,14 +39,19 @@
             android:id="@+id/city"
             android:layout_centerInParent="true"
             android:textColor="#FFF"
-            android:textSize="22dp" />
+            android:textSize="22dp"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp" />
         <View
             android:id="@+id/line_color"
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_centerHorizontal="true"
             android:background="#FFF"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -57,4 +62,19 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/weather"
         android:layout_marginTop="-5dp" />
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/request_weather"
+        android:layout_centerInParent="true"
+        android:src="@drawable/download" />
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progress_bar"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
 </RelativeLayout>

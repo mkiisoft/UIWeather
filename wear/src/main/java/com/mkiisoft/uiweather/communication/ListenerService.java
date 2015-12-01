@@ -1,5 +1,6 @@
 package com.mkiisoft.uiweather.communication;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
@@ -31,12 +32,14 @@ public class ListenerService extends WearableListenerService {
     private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
     public static final String COUNT_PATH = "/count";
 
-    public static final String GESTURE_START_POINT  = "/gesture_start_point";
+    private static final String SEND_WOEID_PATH = "/send-woeid";
 
 
     GoogleApiClient mGoogleApiClient;
 
     Handler handler;
+
+    Context context;
 
     @Override
     public void onCreate() {
@@ -89,14 +92,15 @@ public class ListenerService extends WearableListenerService {
                 Intent intent = new Intent( this, MainActivity.class );
                 intent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
                 startActivity( intent );
-            }
-            else if (messageEvent.getPath().equalsIgnoreCase(GESTURE_START_POINT))
-            {
-                Log.e("aca que es", new String(messageEvent.getData()));
-
             } else {
                 super.onMessageReceived( messageEvent );
             }
+        }
+
+        if (messageEvent.getPath().equalsIgnoreCase(SEND_WOEID_PATH))
+        {
+            KeySaver.saveShare(getApplicationContext(), "woeid", new String(messageEvent.getData()));
+
         }
 
     }

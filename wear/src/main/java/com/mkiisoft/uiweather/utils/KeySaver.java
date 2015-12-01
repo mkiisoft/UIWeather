@@ -1,6 +1,7 @@
 package com.mkiisoft.uiweather.utils;
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.provider.Settings.Secure;
@@ -18,7 +19,7 @@ public class KeySaver {
 	}
 	
 	public static String getDeviceID( Activity a ) {
-		return Secure.getString( a.getBaseContext().getContentResolver(), Secure.ANDROID_ID);
+		return Secure.getString(a.getBaseContext().getContentResolver(), Secure.ANDROID_ID);
 	}
 	
 	public static void saveShare(Activity a,String keyname ,boolean f ) {
@@ -31,15 +32,22 @@ public class KeySaver {
 	public static void saveShare(Activity a,String keyname ,int f ) {
 		SharedPreferences settings = a.getSharedPreferences(AWKEY, Context.MODE_PRIVATE);
 	    SharedPreferences.Editor editor = settings.edit();
-	    editor.putInt( AWPREFIX + keyname, f);
+	    editor.putInt(AWPREFIX + keyname, f);
 	    editor.commit();
 	}
 
 	public static void saveShare(Activity a,String keyname ,String f ) {
 		SharedPreferences settings = a.getSharedPreferences(AWKEY, Context.MODE_PRIVATE);
 	    SharedPreferences.Editor editor = settings.edit();
-	    editor.putString( AWPREFIX + keyname, f);
+	    editor.putString(AWPREFIX + keyname, f);
 	    editor.commit();
+	}
+
+	public static void saveShare(Context a,String keyname ,String f ) {
+		SharedPreferences settings = a.getSharedPreferences(AWKEY, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString( AWPREFIX + keyname, f);
+		editor.commit();
 	}
 
 	

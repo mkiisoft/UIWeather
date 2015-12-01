@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.Gravity;
@@ -18,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -66,12 +69,17 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private static final String SEND_CODE_PATH        = "/send-code";
     private static final String SEND_BITMAP_PATH      = "/send-bitmap";
     private static final String SEND_MODEL_PATH       = "/send-model";
+    private static final String SEND_UPDATE_PATH      = "/send-update";
+
+    private static final String SEND_REQUEST_PATH     = "/send-request";
 
     // Views
     private TextView     mTextTemp, mTextCity;
     private ImageView    bgImage;
+    private ImageView    mRequest;
     private LinearLayout mWeatherIcon;
     private View         mLineColor;
+    private ProgressBar  mProgressBar;
 
     final String white = "#00FFFFFF";
     final int size     = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -92,8 +100,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private String deviceName;
 
     private boolean mIsConnected = false;
-    private LoadBitmapAsyncTask asyncTask;
-
+    private String  mWoeid       = "468739";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,28 +158,46 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-                mTextTemp    = (TextView) stub.findViewById(R.id.temp);
-                mTextCity    = (TextView) stub.findViewById(R.id.city);
-                bgImage      = (ImageView) stub.findViewById(R.id.bg_image);
+                mTextTemp = (TextView) stub.findViewById(R.id.temp);
+                mTextCity = (TextView) stub.findViewById(R.id.city);
+                bgImage = (ImageView) stub.findViewById(R.id.bg_image);
                 mWeatherIcon = (LinearLayout) stub.findViewById(R.id.weather);
-                mLineColor   =                stub.findViewById(R.id.line_color);
+                mLineColor = stub.findViewById(R.id.line_color);
+                mRequest = (ImageView) stub.findViewById(R.id.request_weather);
+                mProgressBar = (ProgressBar) stub.findViewById(R.id.progress_bar);
 
                 mTextCity.setTypeface(thin);
                 mTextTemp.setTypeface(font);
 
-                if(KeySaver.isExist(MainActivity.this, "bitmap")){
-                    bgImage.setImageBitmap(Utils.StringToBitMap(KeySaver.getStringSavedShare(MainActivity.this, "bitmap")));
-                    mTextCity.setText(KeySaver.getStringSavedShare(MainActivity.this, "city"));
-                    mTextCity.setAlpha(0);
-                    initAnim();
-                    mTextTemp.setText(KeySaver.getStringSavedShare(MainActivity.this, "temp"));
+                mTextTemp.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (KeySaver.isExist(getApplicationContext(), "woeid")) {
+                            sendMessageWear(SEND_UPDATE_PATH, KeySaver.getStringSavedShare(getApplicationContext(), "woeid"));
+                        } else {
+                            sendMessageWear(SEND_UPDATE_PATH, mWoeid);
+                        }
+                    }
+                });
 
-                    int codes = Integer.parseInt(KeySaver.getStringSavedShare(MainActivity.this, "code"));
+                mRequest.setVisibility(View.VISIBLE);
+                mRequest.setEnabled(true);
 
-                    mWeatherIcon.removeAllViews();
+                mRequest.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mRequest.setVisibility(View.GONE);
+                        mRequest.setEnabled(false);
+                        mProgressBar.setVisibility(View.VISIBLE);
 
-                    conditionCode(codes);
-                }
+                        if (KeySaver.isExist(getApplicationContext(), "woeid")) {
+                            sendMessageWear(SEND_REQUEST_PATH, KeySaver.getStringSavedShare(getApplicationContext(), "woeid"));
+                        } else {
+                            sendMessageWear(SEND_REQUEST_PATH, mWoeid);
+                        }
+
+                    }
+                });
             }
         });
 
@@ -192,8 +217,6 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     public void setBackgroundImage(Bitmap bitmap) {
         bgImage.setImageBitmap(bitmap);
         bgImage.invalidate();
-
-        KeySaver.saveShare(MainActivity.this, "bitmap", Utils.BitMapToString(bitmap));
     }
 
     @Override
@@ -254,8 +277,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                     Asset photoAsset = dataMapItem.getDataMap()
                             .getAsset(SEND_BITMAP_PATH);
-                    asyncTask = new LoadBitmapAsyncTask();
-                    asyncTask.execute(photoAsset);
+                    new LoadBitmapAsyncTask().execute(photoAsset);
 
                 }
             }
@@ -267,25 +289,25 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+
+                mProgressBar.setVisibility(View.GONE);
+                mRequest.setVisibility(View.GONE);
+                mRequest.setEnabled(false);
+
                 if (messageEvent.getPath().equalsIgnoreCase(SEND_TEMP_PATH)) {
-                    Log.e("message temp", new String(messageEvent.getData()));
+                    mTextTemp.setAlpha(0);
                     mTextTemp.setText(new String(messageEvent.getData()));
-                    KeySaver.saveShare(MainActivity.this, "temp", new String(messageEvent.getData()));
                 } else if (messageEvent.getPath().equalsIgnoreCase(SEND_CITY_PATH)) {
-                    Log.e("message city", new String(messageEvent.getData()));
                     mTextCity.setAlpha(0);
                     mTextCity.setText(new String(messageEvent.getData()));
                     initAnim();
-                    KeySaver.saveShare(MainActivity.this, "city", new String(messageEvent.getData()));
-
                 } else if (messageEvent.getPath().equalsIgnoreCase(SEND_CODE_PATH)) {
-
+                    mWeatherIcon.setAlpha(0);
                     int codes = Integer.parseInt(new String(messageEvent.getData()));
-                    KeySaver.saveShare(MainActivity.this, "code", new String(messageEvent.getData()));
-
                     mWeatherIcon.removeAllViews();
-
                     conditionCode(codes);
+                } else if (messageEvent.getPath().equalsIgnoreCase(SEND_UPDATE_PATH)) {
+                    mTextTemp.setText(new String(messageEvent.getData()));
                 }
             }
         });

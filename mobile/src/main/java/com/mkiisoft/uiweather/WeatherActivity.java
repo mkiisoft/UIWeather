@@ -2,15 +2,20 @@ package com.mkiisoft.uiweather;
 
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -86,9 +91,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -208,6 +216,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private static final String SEND_CODE_PATH        = "/send-code";
     private static final String SEND_BITMAP_PATH      = "/send-bitmap";
     private static final String SEND_MODEL_PATH       = "/send-model";
+    private static final String SEND_WOEID_PATH       = "/send-woeid";
 
     private static final int    REQUEST_IMAGE_CAPTURE = 1;
 
@@ -230,6 +239,10 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                 mAction.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 mAction.setTitle("");
             }
+        }
+
+        if(KeySaver.isExist(WeatherActivity.this, "query-city")){
+            queryURL = KeySaver.getStringSavedShare(WeatherActivity.this, "query-city");
         }
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -517,6 +530,35 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
     }
 
+    private class WearAsyncTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            List<Node> connectedNodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await().getNodes();
+            if(connectedNodes.size() > 0){
+                Log.e("Wear Conectado!", "SI!");
+                mIsConnected = true;
+            }else{
+                Log.e("Wear Conectado!", "NO!");
+            }
+
+            return "Executed";
+        }
+
+        @Override
+        protected void onPostExecute(String post) {
+            if(mIsConnected){
+                showWear();
+            }
+        }
+
+        @Override
+        protected void onCancelled(){
+
+        }
+    }
+
     public void SyncAsyncConenection(String urlConnection) {
 
         mApiCall.get(urlConnection, null, new JsonHttpResponseHandler() {
@@ -560,7 +602,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                             mName = placeObj.getString("name");
                             mCountry = placeObj.getString("country");
                             mCode = attrsObj.getString("code");
-                            mWoeid = attrsObj.getInt("woeid");
+                            mWoeid = placeObj.getInt("woeid");
 
                             arrayAdapter.add(mName + ", " + mCountry);
 
@@ -574,6 +616,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                             if (getTotal == 1 || mCount == 2) {
                                 mCount = 0;
                                 AsyncConnection(mApiURL + queryURL);
+                                KeySaver.saveShare(WeatherActivity.this, "query-city", queryURL);
                             } else {
                                 mCount++;
                                 AlertDialog.Builder builderSingle = new AlertDialog.Builder(WeatherActivity.this);
@@ -703,6 +746,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                                                                 if (!isFistTime) {
                                                                     isFistTime = false;
                                                                 }
+                                                                sendMessageWear(SEND_WOEID_PATH, String.valueOf(mWoeid));
                                                                 AsyncWeather(mApiCatchWoeid + mWoeid);
                                                             }
                                                         });
@@ -713,16 +757,10 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                                                 resizeAnimation.setStartOffset(400);
                                                 mLineColor.startAnimation(resizeAnimation);
 
-                                                mLineColor.post(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        if(mIsConnected){
-                                                            sendPhoto(Utils.toAsset(finalBitmap));
-                                                            Log.e("asset", ""+Utils.toAsset(finalBitmap));
-                                                            sendMessageWear(SEND_CITY_PATH, mName + " " + mCode);
-                                                        }
-                                                    }
-                                                });
+                                                if(mIsConnected){
+                                                    sendPhoto(Utils.toAsset(finalBitmap));
+                                                    sendMessageWear(SEND_CITY_PATH, mName + " " + mCode);
+                                                }
                                             }
 
                                             @Override
@@ -1039,7 +1077,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     }
 
     public void LoopAnimTop(final TextView view) {
-        sendStartActivityMessage(START_ACTIVITY_PATH);
         view.animate().alpha(0).translationY(-view.getHeight()).setDuration(500).setInterpolator(new AccelerateDecelerateInterpolator()).withEndAction(new Runnable() {
             @Override
             public void run() {
@@ -1229,6 +1266,8 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         Wearable.DataApi.addListener(mGoogleApiClient, this);
         Wearable.MessageApi.addListener(mGoogleApiClient, this);
         Wearable.NodeApi.addListener(mGoogleApiClient, this);
+
+        new WearAsyncTask().execute("");
     }
 
     @Override //ConnectionCallbacks
@@ -1277,7 +1316,9 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                 mWearModel.setText(new String(messageEvent.getData()));
             }
 
-            showWear();
+            if(mWearLayout.getVisibility() == View.INVISIBLE){
+                showWear();
+            }
         }
 
     }
@@ -1285,10 +1326,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     @Override //NodeListener
     public void onPeerConnected(final Node peer) {
         Log.e(TAG, "onPeerConnected: " + peer);
-        mIsConnected = true;
-        if(mWearLayout.getVisibility() == View.INVISIBLE){
-            showWear();
-        }
 
     }
 
