@@ -20,11 +20,12 @@ Beta update v0.2b
 
 * Custom Weather Views
 * Forecast
-* 
   * From 3 to 5 days
     * Depends on screen size
--Search history
--Delete single history item
+* Search history
+  * Delete single history item
+* Background temperature color change
+* Background temperature color change
 -Temperature convertion
 -Celsius to Fahrenheit
 -Fahrenheit to Celsius
