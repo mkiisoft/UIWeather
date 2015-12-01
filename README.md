@@ -6,7 +6,7 @@ Material Design Weather
 Open Source project for the community. First version have no/little inner documentation. DOC's will be available soon.
 Material Design from Android 4.1+ (API 16+)
 
-<img src="http://i.imgur.com/ZHtwYTp.png" align="left" height="426" width="240"/>
+<img src="http://i.imgur.com/ZHtwYTp.png" align="left" height="426" width="240"/><img src="http://i.imgur.com/ZHtwYTp.png" align="left" height="426" width="240"/><img src="http://i.imgur.com/ZHtwYTp.png" align="left" height="426" width="240"/><img src="http://i.imgur.com/ZHtwYTp.png" align="left" height="426" width="240"/>
 <br>
 
 # Install
