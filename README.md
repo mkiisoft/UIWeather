@@ -11,11 +11,7 @@ KeySaver is a data store simplifier to save, get, check and remove keys and valu
 
 ## Android Studio:
 
-Save **KeySaver.jar** file, copy into your "libs" folder (normally inside "app" folder) > Right Click your project > Open Module Settings > Over "app" go to Dependencies tab and hit the + button > Select "File Dependency" and click "KeySaver.jar" > OK to finish
-
-## Eclipse:
-
-Save **KeySaver.jar** file and copy into your "libs" folder.
+Import project as issual with any other Android Studio project. This project doesn't include any .jar dependencies.
 
 # Changelog
 
