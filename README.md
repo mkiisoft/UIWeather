@@ -20,7 +20,7 @@ Beta update v0.2b
 
 -Custom weather views
 -Forecast
- -from 3 to 5 days
+-from 3 to 5 days
   -Depends on screen size
 -Search history
 -Delete single history item
