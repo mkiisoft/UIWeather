@@ -1,7 +1,7 @@
 # UIWeather
 Material Design Weather
 =================
-[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/mkiisoft/KeySaver) [![GitHub version](https://d25lcipzij17d.cloudfront.net/badge.svg?id=gh&type=6&v=0.2b&x2=0)](https://github.com/mkiisoft/KeySaver/blob/master/KeySaver.jar) [![Android](https://img.shields.io/badge/language-Android-blue.svg)](https://github.com/mkiisoft/KeySaver)![API](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)
+[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/mkiisoft/KeySaver) [![GitHub version](https://d25lcipzij17d.cloudfront.net/badge.svg?id=gh&type=6&v=0.2b&x2=0)](https://github.com/mkiisoft/KeySaver/blob/master/KeySaver.jar) [![Android](https://img.shields.io/badge/language-Android-blue.svg)](https://github.com/mkiisoft/KeySaver)! [API](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)
 
 Light & Fast Shared Preference. Only 2Kb
 
@@ -19,10 +19,23 @@ Beta update v0.2b
 
 # Features:
 
-- Save **boolean, int** and **String**
-- Check if value exist or not with one line
-- Remove key quick and clean
-- Get values with one line without parse methods
-- Get a list of saved keys/values
-- Works with Activity and any Context (Fragments, Adapters, etc)
-- Extra: Get **IMEI** and **DeviceID**
+
+
+License
+--------
+
+    © 2015 VNGRS
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+    
+
