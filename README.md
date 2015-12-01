@@ -25,33 +25,32 @@ Beta update v0.2b
 * Search history
   * Delete single history item
 * Background temperature color change
-* Background temperature color change
--Temperature convertion
--Celsius to Fahrenheit
--Fahrenheit to Celsius
--Google Images API (deprecated)
--KeySaver (light & fast SharedPreferences)
--Last search location save cache
--Circular reveal animation
--Gesture Listener
--left/right image switcher
--up/down    forecast
--Weather API
--Query search
--Single item info
--Android WEAR support
--Phone to Wear - Wear to Phone service background communication
--Asset communication to send images
--DeviceName (Includes all Android Wear to 12/01/2015)
+* Temperature convertion
+  * Celsius to Fahrenheit
+  * Fahrenheit to Celsius
+* Google Images API (deprecated)
+* KeySaver (light & fast SharedPreferences)
+  * Last search location save cache
+* Circular reveal animation
+* Gesture Listener
+  * left/right image switcher
+  * up/down    forecast
+* Weather API
+  * Query search
+  * Single item info
+* Android WEAR support
+  * Phone to Wear - Wear to Phone service background communication
+  * Asset communication to send images
+  * DeviceName (Includes all Android Wear to 12/01/2015)
 
 # Next Updates:
 
--Intro wizard
--Settings:
---Celsius or Fahrenheit
---Allow Geo location
--Better API response
--Google Maps Geo Position
+* Intro wizard
+  * Settings:
+    * Celsius or Fahrenheit
+    * Allow Geo location
+* Better API response
+* Google Maps Geo Position
 
 License
 --------
