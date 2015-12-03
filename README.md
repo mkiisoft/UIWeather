@@ -11,6 +11,10 @@ Material Design from Android 4.1+ (API 16+)
 ![UIWeather](http://i.imgur.com/L0TbrIX.png) ![UIWeather](http://i.imgur.com/Wthg3Ah.png)
 ![UIWeather](http://i.imgur.com/iNCahp2.png) ![UIWeather](http://i.imgur.com/zToxu2K.png)
 
+# Download
+
+[Android 4.1+ v0.2b](http://bit.ly/1QOy3av)
+
 # Install
 
 ## Android Studio:
