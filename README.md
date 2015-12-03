@@ -6,6 +6,8 @@ Material Design Weather
 Open Source project for the community. First version have no/little inner documentation. DOC's will be available soon.
 Material Design from Android 4.1+ (API 16+)
 
+**UPDATE**: Google remove the support for Images API. We'll update the library for a new (and better) one.
+
 ![UIWeather](http://i.imgur.com/bLqeUeW.png) ![UIWeather](http://i.imgur.com/KNG7zP3.png) ![UIWeather](http://i.imgur.com/LZRl0Mq.png) ![UIWeather](http://i.imgur.com/g0UlNBE.png)
 
 ![UIWeather](http://i.imgur.com/L0TbrIX.png) ![UIWeather](http://i.imgur.com/Wthg3Ah.png)
