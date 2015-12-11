@@ -120,17 +120,18 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     final ArrayList arraylist = new ArrayList<>();
     final ArrayList arrayhistory = new ArrayList<>(11);
     final ArrayList arraylistForecast = new ArrayList<>(5);
+    final ArrayList arraylistPhotos = new ArrayList<>(10);
 
     // HashMap to get Key/Value
     HashMap<String, String> result = new HashMap<>();
     HashMap<String, String> resultHistory = new HashMap<>();
 
     // ArrayList to get position
-    ArrayList<HashMap<String, String>> data;
+    ArrayList<HashMap<String, String>> mData;
     ArrayList<HashMap<String, String>> dataHistory;
 
     // API Strings URIs
-    private String mApiURL, mApiCatchQuery, mApiCatchWoeid;
+    private String mApiCatchQuery, mApiCatchWoeid;
 
     private View mLineColor;
     private RelativeLayout mMainBg;
@@ -139,10 +140,10 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private TextView mTitleCity, mTextType;
     private AutoFitTextView mTextTemp;
 
-    public static final int FAB_STATE_COLLAPSED = 0;
-    public static final int FAB_STATE_EXPANDED = 1;
+    public final int FAB_STATE_COLLAPSED = 0;
+    public final int FAB_STATE_EXPANDED = 1;
 
-    public static int FAB_CURRENT_STATE = FAB_STATE_COLLAPSED;
+    public int FAB_CURRENT_STATE = FAB_STATE_COLLAPSED;
 
     ImageButton mFab, mCollapseFabButton;
     RelativeLayout mExpandedView;
@@ -203,25 +204,27 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     // Wear Connection
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingError = false;
-    private boolean mIsConnected    = false;
+    private boolean mIsConnected = false;
 
-    private static final String TAG = "Wear";
+    private final String TAG = "Wear";
 
-    /** Request code for launching the Intent to resolve Google Play services errors. */
-    private static final int REQUEST_RESOLVE_ERROR = 1000;
+    /**
+     * Request code for launching the Intent to resolve Google Play services errors.
+     */
+    private final int REQUEST_RESOLVE_ERROR = 1000;
 
-    private static final String START_ACTIVITY_PATH   = "/start-activity";
-    private static final String SEND_TEMP_PATH        = "/send-temp";
-    private static final String SEND_CITY_PATH        = "/send-city";
-    private static final String SEND_CODE_PATH        = "/send-code";
-    private static final String SEND_BITMAP_PATH      = "/send-bitmap";
-    private static final String SEND_MODEL_PATH       = "/send-model";
-    private static final String SEND_WOEID_PATH       = "/send-woeid";
+    private final String START_ACTIVITY_PATH = "/start-activity";
+    private final String SEND_TEMP_PATH = "/send-temp";
+    private final String SEND_CITY_PATH = "/send-city";
+    private final String SEND_CODE_PATH = "/send-code";
+    private final String SEND_BITMAP_PATH = "/send-bitmap";
+    private final String SEND_MODEL_PATH = "/send-model";
+    private final String SEND_WOEID_PATH = "/send-woeid";
 
-    private static final int    REQUEST_IMAGE_CAPTURE = 1;
+    private final int REQUEST_IMAGE_CAPTURE = 1;
 
     private LinearLayout mWearLayout;
-    private TextView     mWearModel;
+    private TextView mWearModel;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -241,7 +244,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
             }
         }
 
-        if(KeySaver.isExist(WeatherActivity.this, "query-city")){
+        if (KeySaver.isExist(WeatherActivity.this, "query-city")) {
             queryURL = KeySaver.getStringSavedShare(WeatherActivity.this, "query-city");
         }
 
@@ -266,12 +269,12 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
         mProgress = (AVLoadingIndicatorView) findViewById(R.id.progress_balls);
 
-        mMainBg   = (RelativeLayout) findViewById(R.id.main_bg);
+        mMainBg = (RelativeLayout) findViewById(R.id.main_bg);
 
         // animated views swipe up and down
-        mMainCity  = (RelativeLayout) findViewById(R.id.city_main);
-        mMainTemp  = (RelativeLayout) findViewById(R.id.temp_main);
-        mMainBtn   = (FrameLayout)    findViewById(R.id.btn_main);
+        mMainCity = (RelativeLayout) findViewById(R.id.city_main);
+        mMainTemp = (RelativeLayout) findViewById(R.id.temp_main);
+        mMainBtn = (FrameLayout) findViewById(R.id.btn_main);
         mChildTemp = (RelativeLayout) findViewById(R.id.temp_child);
 
         mChildTemp.setAlpha(0);
@@ -325,15 +328,15 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
             public void onSwipeRight() {
                 int randoms = Utils.randInt(0, 7);
-                result = data.get(randoms);
-                String images = result.get("images");
+                result = mData.get(randoms);
+                String images = result.get("url_big");
                 Glide.with(WeatherActivity.this).load(images).override(800, 800).into(mWeatherImage);
             }
 
             public void onSwipeLeft() {
                 int randoms = Utils.randInt(0, 7);
-                result = data.get(randoms);
-                String images = result.get("images");
+                result = mData.get(randoms);
+                String images = result.get("url_big");
                 Glide.with(WeatherActivity.this).load(images).override(800, 800).into(mWeatherImage);
             }
 
@@ -349,7 +352,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         Typeface font = Typeface.createFromAsset(getAssets(), "thin.otf");
         Typeface thin = Typeface.createFromAsset(getAssets(), "ultra.otf");
 
-        mApiURL = getResources().getString(R.string.apiurl);
         mApiCatchQuery = getResources().getString(R.string.api_url_query);
         mApiCatchWoeid = getResources().getString(R.string.api_url_woeid);
 
@@ -391,7 +393,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         });
 
         mWearLayout = (LinearLayout) findViewById(R.id.wear_connect_layout);
-        mWearModel  = (TextView)     findViewById(R.id.wear_model_text);
+        mWearModel = (TextView) findViewById(R.id.wear_model_text);
 
         mWearModel.setTypeface(thin);
 
@@ -483,11 +485,11 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     mAdapterHistory.notifyDataSetChanged();
                     arraylistForecast.clear();
                     mAdapter.notifyDataSetChanged();
-                    if(data != null){
-                        data.clear();
+                    if (mData != null) {
+                        mData.clear();
                     } else if (result != null) {
                         result.clear();
-                    } else if (arraylist != null){
+                    } else if (arraylist != null) {
                         arraylist.clear();
                     }
 
@@ -536,10 +538,10 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         protected String doInBackground(String... params) {
 
             List<Node> connectedNodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await().getNodes();
-            if(connectedNodes.size() > 0){
+            if (connectedNodes.size() > 0) {
                 Log.e("Wear Conectado!", "SI!");
                 mIsConnected = true;
-            }else{
+            } else {
                 Log.e("Wear Conectado!", "NO!");
             }
 
@@ -548,13 +550,13 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
         @Override
         protected void onPostExecute(String post) {
-            if(mIsConnected){
+            if (mIsConnected) {
                 showWear();
             }
         }
 
         @Override
-        protected void onCancelled(){
+        protected void onCancelled() {
 
         }
     }
@@ -566,7 +568,14 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
             @Override
             public void onStart() {
-
+                mChildTemp.setEnabled(true);
+                mProgress.setVisibility(View.VISIBLE);
+                mProgress.animate().alpha(1).setStartDelay(500).setDuration(400).withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgress.setAlpha(1);
+                    }
+                });
             }
 
             @Override
@@ -578,7 +587,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     final int getTotal = getPlaces.getInt("total");
                     Log.e("total", "" + getTotal);
 
-                    if(getTotal == 0){
+                    if (getTotal == 0) {
                         Toast.makeText(WeatherActivity.this, getResources().getString(R.string.no_results), Toast.LENGTH_SHORT).show();
                     }
 
@@ -615,7 +624,8 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
                             if (getTotal == 1 || mCount == 2) {
                                 mCount = 0;
-                                AsyncConnection(mApiURL + queryURL);
+                                sendMessageWear(SEND_WOEID_PATH, String.valueOf(mWoeid));
+                                AsyncWeather(mApiCatchWoeid + mWoeid);
                                 KeySaver.saveShare(WeatherActivity.this, "query-city", queryURL);
                             } else {
                                 mCount++;
@@ -662,132 +672,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
     }
 
-    public void AsyncConnection(String urlConnection) {
-
-        mApiCall.get(urlConnection, null, new AsyncHttpResponseHandler() {
-
-            @Override
-            public void onStart() {
-                mChildTemp.setEnabled(true);
-                mProgress.setVisibility(View.VISIBLE);
-                mProgress.animate().alpha(1).setStartDelay(500).setDuration(400).withEndAction(new Runnable() {
-                    @Override
-                    public void run() {
-                        mProgress.setAlpha(1);
-                    }
-                });
-
-            }
-
-            @Override
-            public void onSuccess(int i, Header[] headers, final byte[] response) {
-
-                try {
-
-                    JSONObject jsonImages = new JSONObject(Utils.decodeUTF8(response));
-                    final Integer status = jsonImages.getInt("responseStatus");
-
-                    if (status == 403) {
-                        String details = jsonImages.getString("responseDetails");
-                        Toast.makeText(WeatherActivity.this, getResources().getString(R.string.try_again), Toast.LENGTH_SHORT).show();
-                    }
-
-                    if (jsonImages.getJSONObject("responseData") != null) {
-                        jsonResponse = jsonImages.getJSONObject("responseData");
-                    }
-
-                    if (status == 200) {
-                        JSONArray jsonResults = jsonResponse.getJSONArray("results");
-
-                        for (int imgs = 0; imgs < jsonResults.length(); imgs++) {
-
-                            HashMap<String, String> images = new HashMap<>();
-
-                            JSONObject imagesResult = jsonResults.getJSONObject(imgs);
-
-                            String url = imagesResult.getString("url");
-
-                            images.put("images", url);
-
-                            arraylist.add(images);
-
-                        }
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                int ran = Utils.randInt(0, 7);
-                                data = arraylist;
-                                result = data.get(ran);
-                                String img = result.get("images");
-                                Glide.with(WeatherActivity.this).load(img).asBitmap().override(800, 800).
-                                        into(new SimpleTarget() {
-                                            @Override
-                                            public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
-
-                                                mTitleCity.setTranslationY(-50);
-                                                mTitleCity.setText(mName + " " + mCode);
-                                                CharSequence text = mTitleCity.getText();
-                                                float width = mTitleCity.getPaint().measureText(text, 0, text.length());
-                                                int textWidth = Math.round(width);
-                                                float percent = (float) textWidth / 130 * 100;
-                                                int newWidth = (int) percent;
-                                                final Bitmap finalBitmap = (Bitmap) resource;
-
-                                                mWeatherImage.animate().alpha(0.2f).setDuration(400).withEndAction(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        mWeatherImage.setAlpha(0.2f);
-                                                        mWeatherImage.setImageBitmap(finalBitmap);
-                                                        mWeatherImage.animate().alpha(1).setDuration(800).withEndAction(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                mTitleCity.animate().alpha(1).translationY(0).setStartDelay(200).setDuration(600).setInterpolator(new DecelerateInterpolator());
-                                                                if (!isFistTime) {
-                                                                    isFistTime = false;
-                                                                }
-                                                                sendMessageWear(SEND_WOEID_PATH, String.valueOf(mWoeid));
-                                                                AsyncWeather(mApiCatchWoeid + mWoeid);
-                                                            }
-                                                        });
-                                                    }
-                                                });
-                                                final ResizeAnimation resizeAnimation = new ResizeAnimation(mLineColor, newWidth);
-                                                resizeAnimation.setDuration(600);
-                                                resizeAnimation.setStartOffset(400);
-                                                mLineColor.startAnimation(resizeAnimation);
-
-                                                if(mIsConnected){
-                                                    sendPhoto(Utils.toAsset(finalBitmap));
-                                                    sendMessageWear(SEND_CITY_PATH, mName + " " + mCode);
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                                                int randoms = Utils.randInt(0, 7);
-                                                result = data.get(randoms);
-                                                String images = result.get("images");
-                                                Glide.with(WeatherActivity.this).load(images).override(800, 800).into(mWeatherImage);
-                                            }
-                                        });
-                            }
-                        });
-                    }
-
-                } catch (Exception e) {
-                    System.out.print(e);
-                }
-
-            }
-
-            @Override
-            public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
-
-            }
-        });
-    }
-
     public void AsyncWeather(String urlConnection) {
         mApiCall.get(urlConnection, null, new AsyncHttpResponseHandler() {
 
@@ -818,6 +702,21 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     code = data.getString("code");
 
                     JSONArray forecast = jsonWeather.getJSONArray("forecast");
+                    JSONArray photos = jsonWeather.getJSONArray("fotos");
+
+                    for (int p = 0; p < photos.length(); p++) {
+
+                        HashMap<String, String> photosHash = new HashMap<>();
+                        JSONObject photosObj = photos.getJSONObject(p);
+
+                        photosHash.put("url_big", photosObj.getString("url_big"));
+                        photosHash.put("title", photosObj.getString("title"));
+
+                        Log.e("fotos", photosObj.getString("url_big"));
+
+                        arraylistPhotos.add(photosHash);
+
+                    }
 
                     for (int f = 0; f < forecastSize; f++) {
 
@@ -838,6 +737,61 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+
+                            int ran = Utils.randInt(0, 9);
+                            mData = arraylistPhotos;
+                            result = mData.get(ran);
+                            String img = result.get("url_big");
+                            Glide.with(WeatherActivity.this).load(img).asBitmap().override(800, 800).
+                                    into(new SimpleTarget() {
+                                        @Override
+                                        public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
+
+                                            mTitleCity.setTranslationY(-50);
+                                            mTitleCity.setText(mName + " " + mCode);
+                                            CharSequence text = mTitleCity.getText();
+                                            float width = mTitleCity.getPaint().measureText(text, 0, text.length());
+                                            int textWidth = Math.round(width);
+                                            float percent = (float) textWidth / 130 * 100;
+                                            int newWidth = (int) percent;
+                                            final Bitmap finalBitmap = (Bitmap) resource;
+
+                                            mWeatherImage.animate().alpha(0.2f).setDuration(400).withEndAction(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    mWeatherImage.setAlpha(0.2f);
+                                                    mWeatherImage.setImageBitmap(finalBitmap);
+                                                    mWeatherImage.animate().alpha(1).setDuration(800).withEndAction(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            mTitleCity.animate().alpha(1).translationY(0).setStartDelay(200).setDuration(600).setInterpolator(new DecelerateInterpolator());
+                                                            if (!isFistTime) {
+                                                                isFistTime = false;
+                                                            }
+                                                            sendMessageWear(SEND_WOEID_PATH, String.valueOf(mWoeid));
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                            final ResizeAnimation resizeAnimation = new ResizeAnimation(mLineColor, newWidth);
+                                            resizeAnimation.setDuration(600);
+                                            resizeAnimation.setStartOffset(400);
+                                            mLineColor.startAnimation(resizeAnimation);
+
+                                            if (mIsConnected) {
+                                                sendPhoto(Utils.toAsset(finalBitmap));
+                                                sendMessageWear(SEND_CITY_PATH, mName + " " + mCode);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onLoadFailed(Exception e, Drawable errorDrawable) {
+                                            int randoms = Utils.randInt(0, 9);
+                                            result = mData.get(randoms);
+                                            String images = result.get("url_img");
+                                            Glide.with(WeatherActivity.this).load(images).override(800, 800).into(mWeatherImage);
+                                        }
+                                    });
 
                             int temps = Integer.parseInt(temp);
                             int codes = Integer.parseInt(code);
@@ -924,14 +878,14 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     }
 
     public void initCustomWeatherViews() {
-        sunView = new SunView(WeatherActivity.this);
-        windView = new WindView(WeatherActivity.this);
-        moonView = new MoonView(WeatherActivity.this);
-        cloudView = new CloudView(WeatherActivity.this);
-        thunderView = new CloudThunderView(WeatherActivity.this);
-        rainView = new CloudRainView(WeatherActivity.this);
-        fogView = new CloudFogView(WeatherActivity.this);
-        cloudSunView = new CloudSunView(WeatherActivity.this);
+        sunView       = new SunView(WeatherActivity.this);
+        windView      = new WindView(WeatherActivity.this);
+        moonView      = new MoonView(WeatherActivity.this);
+        cloudView     = new CloudView(WeatherActivity.this);
+        thunderView   = new CloudThunderView(WeatherActivity.this);
+        rainView      = new CloudRainView(WeatherActivity.this);
+        fogView       = new CloudFogView(WeatherActivity.this);
+        cloudSunView  = new CloudSunView(WeatherActivity.this);
         cloudMoonView = new CloudMoonView(WeatherActivity.this);
         cloudSnowView = new CloudSnowView(WeatherActivity.this);
     }
@@ -1050,11 +1004,11 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         slide.start();
     }
 
-    public static Interpolator getLinearOutSlowInInterpolator() {
+    public Interpolator getLinearOutSlowInInterpolator() {
         return new CubicBezierInterpolator(0, 0, 0.2, 1);
     }
 
-    public static Interpolator getFastInSlowOutInterpolator() {
+    public Interpolator getFastInSlowOutInterpolator() {
         return new CubicBezierInterpolator(0.4, 0, 0.2, 1);
     }
 
@@ -1176,7 +1130,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
     public void swipeUp(boolean enabled) {
         if (enabled) {
-            if(mIsConnected){
+            if (mIsConnected) {
                 hideWear();
             }
             mAdapter.notifyDataSetChanged();
@@ -1221,7 +1175,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                             mChildTemp.setTranslationY(+mChildTemp.getHeight());
                             mListForecast.setTranslationY(+mListForecast.getHeight());
                             mListForecast.setEnabled(false);
-                            if(mIsConnected){
+                            if (mIsConnected) {
                                 showWear();
                             }
                         }
@@ -1318,7 +1272,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                 mWearModel.setText(new String(messageEvent.getData()));
             }
 
-            if(mWearLayout.getVisibility() == View.INVISIBLE){
+            if (mWearLayout.getVisibility() == View.INVISIBLE) {
                 showWear();
             }
         }
@@ -1335,7 +1289,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     public void onPeerDisconnected(final Node peer) {
         Log.e(TAG, "onPeerDisconnected: " + peer);
         mIsConnected = false;
-        if(mWearLayout.getVisibility() == View.VISIBLE){
+        if (mWearLayout.getVisibility() == View.VISIBLE) {
             hideWear();
         }
     }
@@ -1355,14 +1309,14 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         );
     }
 
-    public void sendMessageWear( final String path, final String text ) {
-        new Thread( new Runnable() {
+    public void sendMessageWear(final String path, final String text) {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mGoogleApiClient ).await();
-                for(Node node : nodes.getNodes()) {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+                for (Node node : nodes.getNodes()) {
                     MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            mGoogleApiClient, node.getId(), path, text.getBytes() ).await();
+                            mGoogleApiClient, node.getId(), path, text.getBytes()).await();
                 }
 
             }
@@ -1385,7 +1339,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
     }
 
-    private void showWear(){
+    private void showWear() {
         mWearLayout.setTranslationX(+mWearLayout.getWidth());
         mWearLayout.setVisibility(View.VISIBLE);
         mWearLayout.animate().translationX(0).setDuration(500)
@@ -1398,7 +1352,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                 });
     }
 
-    private void hideWear(){
+    private void hideWear() {
         mWearLayout.animate().setDuration(500).translationX(+mWearLayout.getWidth())
                 .setInterpolator(new DecelerateInterpolator())
                 .withEndAction(new Runnable() {

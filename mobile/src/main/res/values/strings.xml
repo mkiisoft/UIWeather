@@ -10,10 +10,8 @@
     <string name="emptystring"></string>
 
     <!-- api URLs -->
-    <string name="apiurl">http://ajax.googleapis.com/ajax/services/search/images?v=1.0&amp;rsz=8&amp;safe=active&amp;as_filetype=jpg&amp;q=</string>
     <string name="api_url_query">http://catchweather.com/api/query.php?key=ABARAJAMEENLABANIERANENA&amp;format=json&amp;q=</string>
     <string name="api_url_woeid">http://catchweather.com/api/forecast.php?key=ABARAJAMEENLABANIERANENA&amp;format=json2&amp;woeid=</string>
-
     <!-- image full -->
     <string name="copyright">Copyright protected image. Can\'t be modify.</string>
     <string name="undo">Cancel</string>

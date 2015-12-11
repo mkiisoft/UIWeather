@@ -55,19 +55,19 @@ import cz.msebera.android.httpclient.Header;
  */
 public class ListenerService extends WearableListenerService {
 
-    private static final String TAG = "ListenerService";
+    private final String TAG = "ListenerService";
 
-    private static final String START_ACTIVITY_PATH = "/start-activity";
-    private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
-    public static final String COUNT_PATH = "/count";
+    private final String START_ACTIVITY_PATH = "/start-activity";
+    private final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
+    public  final String COUNT_PATH = "/count";
 
-    private static final String SEND_REQUEST_PATH = "/send-request";
-    private static final String SEND_TEMP_PATH = "/send-temp";
-    private static final String SEND_CITY_PATH = "/send-city";
-    private static final String SEND_CODE_PATH = "/send-code";
-    private static final String SEND_UPDATE_PATH = "/send-update";
+    private final String SEND_REQUEST_PATH = "/send-request";
+    private final String SEND_TEMP_PATH = "/send-temp";
+    private final String SEND_CITY_PATH = "/send-city";
+    private final String SEND_CODE_PATH = "/send-code";
+    private final String SEND_UPDATE_PATH = "/send-update";
 
-    private static final String SEND_BITMAP_PATH      = "/send-bitmap";
+    private final String SEND_BITMAP_PATH      = "/send-bitmap";
 
     String Fahrenheit = "\u00B0F";
     String Celsius = "\u00B0C";
@@ -87,7 +87,7 @@ public class ListenerService extends WearableListenerService {
     Utils.ApiCall mApiCall;
     private JSONObject jsonResponse;
 
-    ArrayList<HashMap<String, String>> data;
+    ArrayList<HashMap<String, String>> mData;
     HashMap<String, String> result = new HashMap<>();
 
     @Override
@@ -103,7 +103,7 @@ public class ListenerService extends WearableListenerService {
         mApiCall = new Utils.ApiCall();
 
         mApiURL = getResources().getString(R.string.api_url_woeid);
-        mApiImg = getResources().getString(R.string.apiurl);
+//        mApiImg = getResources().getString(R.string.apiurl);
     }
 
     @Override
@@ -188,6 +188,8 @@ public class ListenerService extends WearableListenerService {
 
         mApiCall.get(urlConnection, null, new AsyncHttpResponseHandler() {
 
+            final ArrayList arraylist = new ArrayList<>();
+
             @Override
             public void onStart() {
 
@@ -199,12 +201,29 @@ public class ListenerService extends WearableListenerService {
 
                     JSONObject jsonWeather = new JSONObject(Utils.decodeUTF8(response));
 
-                    JSONObject queryObject = jsonWeather.getJSONObject("query");
+                    JSONObject queryObject  = jsonWeather.getJSONObject("query");
+                    JSONArray  photosObject = jsonWeather.getJSONArray("fotos");
+
                     final JSONObject data = queryObject.getJSONObject("datos");
+
                     city = data.getString("city");
                     temp = data.getString("temp");
                     code = data.getString("code");
                     pais = data.getString("country");
+
+                    for (int imgs = 0; imgs < photosObject.length(); imgs++) {
+
+                        HashMap<String, String> images = new HashMap<>();
+
+                        JSONObject imagesResult = photosObject.getJSONObject(imgs);
+
+                        String url = imagesResult.getString("url_big");
+
+                        images.put("url_big", url);
+
+                        arraylist.add(images);
+
+                    }
 
                     runOnUiThread(new Runnable() {
                         @Override
@@ -213,7 +232,20 @@ public class ListenerService extends WearableListenerService {
                             sendMessageWear(SEND_CODE_PATH, code);
                             sendMessageWear(SEND_TEMP_PATH, temp + Celsius);
 
-                            AsyncConnection(mApiImg + city + " " + pais);
+                            int ran = Utils.randInt(0, 9);
+                            mData = arraylist;
+                            result = mData.get(ran);
+                            String img = result.get("url_big");
+
+                            Glide.with(ListenerService.this).load(img).asBitmap().override(800, 800).
+                                    into(new SimpleTarget() {
+                                        @Override
+                                        public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
+                                            final Bitmap finalBitmap = (Bitmap) resource;
+
+                                            sendPhoto(Utils.toAsset(finalBitmap));
+                                        }
+                                    });
                         }
                     });
 
@@ -258,83 +290,6 @@ public class ListenerService extends WearableListenerService {
                 } catch (Exception e) {
                     System.out.print(e);
                 }
-            }
-
-            @Override
-            public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
-
-            }
-        });
-    }
-
-    public void AsyncConnection(String urlConnection) {
-
-        mApiCall.get(urlConnection, null, new AsyncHttpResponseHandler() {
-
-            final ArrayList arraylist = new ArrayList<>();
-
-            @Override
-            public void onStart() {
-            }
-
-            @Override
-            public void onSuccess(int i, Header[] headers, final byte[] response) {
-
-                try {
-
-                    JSONObject jsonImages = new JSONObject(Utils.decodeUTF8(response));
-                    final Integer status = jsonImages.getInt("responseStatus");
-
-                    if (status == 403) {
-                        String details = jsonImages.getString("responseDetails");
-                    }
-
-                    if (jsonImages.getJSONObject("responseData") != null) {
-                        jsonResponse = jsonImages.getJSONObject("responseData");
-                    }
-
-                    if (status == 200) {
-                        JSONArray jsonResults = jsonResponse.getJSONArray("results");
-
-                        for (int imgs = 0; imgs < jsonResults.length(); imgs++) {
-
-                            HashMap<String, String> images = new HashMap<>();
-
-                            JSONObject imagesResult = jsonResults.getJSONObject(imgs);
-
-                            String url = imagesResult.getString("url");
-
-                            images.put("images", url);
-
-                            arraylist.add(images);
-
-                        }
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                int ran = Utils.randInt(0, 7);
-                                data = arraylist;
-                                result = data.get(ran);
-                                String img = result.get("images");
-
-                                Glide.with(ListenerService.this).load(img).asBitmap().override(800, 800).
-                                        into(new SimpleTarget() {
-                                            @Override
-                                            public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
-                                                final Bitmap finalBitmap = (Bitmap) resource;
-
-                                                sendPhoto(Utils.toAsset(finalBitmap));
-                                            }
-                                        });
-                            }
-                        });
-                    }
-
-                } catch (Exception e) {
-                    System.out.print(e);
-                }
-
             }
 
             @Override
