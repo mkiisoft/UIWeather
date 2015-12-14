@@ -58,12 +58,12 @@ public class KeySaver {
 
 	public static int getIntSavedShare(Activity a, String keyname) {
 		SharedPreferences settings = a.getSharedPreferences(AWKEY, Context.MODE_PRIVATE);
-		return settings.getInt( AWPREFIX + keyname, -1);
+		return settings.getInt(AWPREFIX + keyname, -1);
 	}
 
 	public static String getStringSavedShare(Activity a, String keyname) {
 		SharedPreferences settings = a.getSharedPreferences(AWKEY, Context.MODE_PRIVATE);
-		return settings.getString( AWPREFIX + keyname, null);
+		return settings.getString(AWPREFIX + keyname, null);
 	}
 	
 	public static String getStringSavedShare(Context context, String keyname) {
@@ -91,6 +91,15 @@ public class KeySaver {
             editor.remove(AWPREFIX+keyname);
             editor.commit();
         }
+	}
+
+	public static void removeKey (Context a,String keyname) {
+		SharedPreferences settings = a.getSharedPreferences(AWKEY, Context.MODE_PRIVATE);
+		if (isExist(a,keyname)){
+			SharedPreferences.Editor editor = settings.edit();
+			editor.remove(AWPREFIX+keyname);
+			editor.commit();
+		}
 	}
 	
 	public static boolean isExist(Activity a,String keyname) {

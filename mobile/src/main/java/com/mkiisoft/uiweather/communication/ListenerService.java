@@ -57,17 +57,18 @@ public class ListenerService extends WearableListenerService {
 
     private final String TAG = "ListenerService";
 
-    private final String START_ACTIVITY_PATH = "/start-activity";
+    private final String START_ACTIVITY_PATH     = "/start-activity";
     private final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
-    public  final String COUNT_PATH = "/count";
+    public  final String COUNT_PATH              = "/count";
 
-    private final String SEND_REQUEST_PATH = "/send-request";
-    private final String SEND_TEMP_PATH = "/send-temp";
-    private final String SEND_CITY_PATH = "/send-city";
-    private final String SEND_CODE_PATH = "/send-code";
-    private final String SEND_UPDATE_PATH = "/send-update";
+    private final String SEND_REQUEST_PATH       = "/send-request";
+    private final String SEND_TEMP_PATH          = "/send-temp";
+    private final String SEND_CITY_PATH          = "/send-city";
+    private final String SEND_CODE_PATH          = "/send-code";
+    private final String SEND_UPDATE_PATH        = "/send-update";
+    private final String SEND_UPDATE_CODE      = "/send-update-code";
 
-    private final String SEND_BITMAP_PATH      = "/send-bitmap";
+    private final String SEND_BITMAP_PATH        = "/send-bitmap";
 
     String Fahrenheit = "\u00B0F";
     String Celsius = "\u00B0C";
@@ -90,6 +91,19 @@ public class ListenerService extends WearableListenerService {
     ArrayList<HashMap<String, String>> mData;
     HashMap<String, String> result = new HashMap<>();
 
+    private String[] noImages = {
+            "file:///android_asset/no_image_one.png",
+            "file:///android_asset/no_image_two.png",
+            "file:///android_asset/no_image_three.png",
+            "file:///android_asset/no_image_four.png",
+            "file:///android_asset/no_image_one.png",
+            "file:///android_asset/no_image_two.png",
+            "file:///android_asset/no_image_three.png",
+            "file:///android_asset/no_image_four.png",
+            "file:///android_asset/no_image_one.png",
+            "file:///android_asset/no_image_two.png"
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -103,12 +117,11 @@ public class ListenerService extends WearableListenerService {
         mApiCall = new Utils.ApiCall();
 
         mApiURL = getResources().getString(R.string.api_url_woeid);
-//        mApiImg = getResources().getString(R.string.apiurl);
     }
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-//        LOGD(TAG, "onDataChanged: " + dataEvents);
+
         final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
         dataEvents.close();
         if (!mGoogleApiClient.isConnected()) {
@@ -202,7 +215,6 @@ public class ListenerService extends WearableListenerService {
                     JSONObject jsonWeather = new JSONObject(Utils.decodeUTF8(response));
 
                     JSONObject queryObject  = jsonWeather.getJSONObject("query");
-                    JSONArray  photosObject = jsonWeather.getJSONArray("fotos");
 
                     final JSONObject data = queryObject.getJSONObject("datos");
 
@@ -211,18 +223,36 @@ public class ListenerService extends WearableListenerService {
                     code = data.getString("code");
                     pais = data.getString("country");
 
-                    for (int imgs = 0; imgs < photosObject.length(); imgs++) {
+                    final JSONArray  photosObject = jsonWeather.getJSONArray("fotos");
 
-                        HashMap<String, String> images = new HashMap<>();
+                    if (photosObject.length() > 0 ){
 
-                        JSONObject imagesResult = photosObject.getJSONObject(imgs);
+                        for (int imgs = 0; imgs < photosObject.length(); imgs++) {
 
-                        String url = imagesResult.getString("url_big");
+                            HashMap<String, String> images = new HashMap<>();
 
-                        images.put("url_big", url);
+                            JSONObject imagesResult = photosObject.getJSONObject(imgs);
 
-                        arraylist.add(images);
+                            String url = imagesResult.getString("url_big");
 
+                            images.put("url_big", url);
+
+                            arraylist.add(images);
+
+                        }
+
+                    } else {
+
+                        for (int imgs = 0; imgs < 10; imgs++) {
+
+                            HashMap<String, String> images = new HashMap<>();
+
+                            images.put("url_big", noImages[imgs]);
+
+
+                            arraylist.add(images);
+
+                        }
                     }
 
                     runOnUiThread(new Runnable() {
@@ -235,12 +265,14 @@ public class ListenerService extends WearableListenerService {
                             int ran = Utils.randInt(0, 9);
                             mData = arraylist;
                             result = mData.get(ran);
-                            String img = result.get("url_big");
+                            final String img = result.get("url_big");
 
-                            Glide.with(ListenerService.this).load(img).asBitmap().override(800, 800).
+                            Glide.with(ListenerService.this).load(photosObject.length() > 0 ? img : Uri.parse(img)).asBitmap().override(800, 800).
                                     into(new SimpleTarget() {
                                         @Override
                                         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
+
+                                            Log.e("imagen", ""+img);
                                             final Bitmap finalBitmap = (Bitmap) resource;
 
                                             sendPhoto(Utils.toAsset(finalBitmap));
@@ -279,11 +311,14 @@ public class ListenerService extends WearableListenerService {
                     JSONObject queryObject = jsonWeather.getJSONObject("query");
                     final JSONObject data = queryObject.getJSONObject("datos");
                     temp = data.getString("temp");
+                    code = data.getString("code");
 
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            Log.e("si", "pide el watch face");
                             sendMessageWear(SEND_UPDATE_PATH, temp + Celsius);
+                            sendMessageWear(SEND_UPDATE_CODE, code);
                         }
                     });
 

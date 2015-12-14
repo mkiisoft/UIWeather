@@ -2,24 +2,20 @@ package com.mkiisoft.uiweather;
 
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -39,6 +35,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -91,17 +88,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import cz.msebera.android.httpclient.Header;
 
 import io.codetail.animation.SupportAnimator;
-import io.codetail.animation.SupportAnimator.SimpleAnimatorListener;
 
 /**
  * Created by mariano-zorrilla on 17/11/15.
@@ -134,6 +128,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private String mApiCatchQuery, mApiCatchWoeid;
 
     private View mLineColor;
+    private ImageView toSettings;
     private RelativeLayout mMainBg;
     private LinearLayout mWeatherIcon;
     private SquareImageView mWeatherImage;
@@ -226,6 +221,19 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private LinearLayout mWearLayout;
     private TextView mWearModel;
 
+    private String[] noImages = {
+            "file:///android_asset/no_image_one.png",
+            "file:///android_asset/no_image_two.png",
+            "file:///android_asset/no_image_three.png",
+            "file:///android_asset/no_image_four.png",
+            "file:///android_asset/no_image_one.png",
+            "file:///android_asset/no_image_two.png",
+            "file:///android_asset/no_image_three.png",
+            "file:///android_asset/no_image_four.png",
+            "file:///android_asset/no_image_one.png",
+            "file:///android_asset/no_image_two.png"
+    };
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -272,10 +280,20 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         mMainBg = (RelativeLayout) findViewById(R.id.main_bg);
 
         // animated views swipe up and down
-        mMainCity = (RelativeLayout) findViewById(R.id.city_main);
-        mMainTemp = (RelativeLayout) findViewById(R.id.temp_main);
-        mMainBtn = (FrameLayout) findViewById(R.id.btn_main);
+        mMainCity  = (RelativeLayout) findViewById(R.id.city_main);
+        mMainTemp  = (RelativeLayout) findViewById(R.id.temp_main);
+        mMainBtn   = (FrameLayout)    findViewById(R.id.btn_main);
         mChildTemp = (RelativeLayout) findViewById(R.id.temp_child);
+
+        toSettings = (ImageView) findViewById(R.id.to_settings);
+        toSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("gets here?", "it should");
+                Intent i = new Intent(WeatherActivity.this, WeatherSettings.class);
+                startActivity(i);
+            }
+        });
 
         mChildTemp.setAlpha(0);
         mChildTemp.setEnabled(false);
@@ -702,20 +720,31 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     code = data.getString("code");
 
                     JSONArray forecast = jsonWeather.getJSONArray("forecast");
-                    JSONArray photos = jsonWeather.getJSONArray("fotos");
+                    final JSONArray photos = jsonWeather.getJSONArray("fotos");
 
-                    for (int p = 0; p < photos.length(); p++) {
+                    if(photos.length() > 0) {
 
-                        HashMap<String, String> photosHash = new HashMap<>();
-                        JSONObject photosObj = photos.getJSONObject(p);
+                        for (int p = 0; p < photos.length(); p++) {
 
-                        photosHash.put("url_big", photosObj.getString("url_big"));
-                        photosHash.put("title", photosObj.getString("title"));
+                            HashMap<String, String> photosHash = new HashMap<>();
+                            JSONObject photosObj = photos.getJSONObject(p);
+                            photosHash.put("url_big", photosObj.getString("url_big"));
+                            photosHash.put("title", photosObj.getString("title"));
 
-                        Log.e("fotos", photosObj.getString("url_big"));
+                            arraylistPhotos.add(photosHash);
 
-                        arraylistPhotos.add(photosHash);
+                        }
 
+                    } else {
+
+                        for (int p = 0; p < 10; p++) {
+
+                            HashMap<String, String> photosHash = new HashMap<>();
+                            photosHash.put("url_big", noImages[p]);
+
+                            arraylistPhotos.add(photosHash);
+
+                        }
                     }
 
                     for (int f = 0; f < forecastSize; f++) {
@@ -742,7 +771,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                             mData = arraylistPhotos;
                             result = mData.get(ran);
                             String img = result.get("url_big");
-                            Glide.with(WeatherActivity.this).load(img).asBitmap().override(800, 800).
+                            Glide.with(WeatherActivity.this).load(photos.length() > 0 ? img : Uri.parse(img)).asBitmap().override(800, 800).
                                     into(new SimpleTarget() {
                                         @Override
                                         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
@@ -786,10 +815,12 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
                                         @Override
                                         public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                                            int randoms = Utils.randInt(0, 9);
-                                            result = mData.get(randoms);
-                                            String images = result.get("url_img");
-                                            Glide.with(WeatherActivity.this).load(images).override(800, 800).into(mWeatherImage);
+                                            if (mData.size() > 0) {
+                                                int randoms = Utils.randInt(0, 9);
+                                                result = mData.get(randoms);
+                                                String images = result.get("url_img");
+                                                Glide.with(WeatherActivity.this).load(images).override(800, 800).into(mWeatherImage);
+                                            }
                                         }
                                     });
 
@@ -825,6 +856,8 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                             } else if (codes == 46) {
                                 mWeatherIcon.addView(cloudSnowView);
                             } else if (codes == 3200) {
+                                mWeatherIcon.addView(sunView);
+                            } else {
                                 mWeatherIcon.addView(sunView);
                             }
 

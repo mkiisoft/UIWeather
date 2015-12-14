@@ -312,4 +312,24 @@ public class Utils {
         return bitmap;
     }
 
+    // Converts to celcius
+    public static int convertFahrenheitToCelcius(float fahrenheit) {
+        return Math.round(((fahrenheit - 32) * 5.0f / 9.0f));
+    }
+
+    // Converts to fahrenheit
+    public static int convertCelciusToFahrenheit(float celsius) {
+        return Math.round(((celsius * 9.0f) / 5.0f) + 32);
+    }
+
+    public static String formatFloat(float number) {
+        String formated = "";
+
+        formated = String.valueOf(number);
+
+        formated = formated.substring(0, formated.lastIndexOf("."));
+
+        return formated;
+    }
+
 }

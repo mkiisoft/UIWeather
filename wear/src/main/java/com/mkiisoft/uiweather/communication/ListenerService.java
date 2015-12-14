@@ -8,11 +8,14 @@ import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.data.FreezableUtils;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 import com.mkiisoft.uiweather.MainActivity;
@@ -26,13 +29,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class ListenerService extends WearableListenerService {
 
-    private static final String TAG = "ListenerService";
+    private final String TAG = "ListenerService";
 
-    private static final String START_ACTIVITY_PATH = "/start-activity";
-    private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
-    public static final String COUNT_PATH = "/count";
+    private final String START_ACTIVITY_PATH     = "/start-activity";
+    private final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
+    public  final String COUNT_PATH              = "/count";
+    private final String SEND_UPDATE_PATH        = "/send-update";
+    private final String SEND_UPDATE_CODE        = "/send-update-code";
 
-    private static final String SEND_WOEID_PATH = "/send-woeid";
+    private final String SEND_ANALOG_PATH = "/send-analog";
+    private final String SEND_CTOF_PATH   = "/send-fahrenheit";
+
+    private final String SEND_WOEID_PATH         = "/send-woeid";
 
 
     GoogleApiClient mGoogleApiClient;
@@ -97,9 +105,33 @@ public class ListenerService extends WearableListenerService {
             }
         }
 
-        if (messageEvent.getPath().equalsIgnoreCase(SEND_WOEID_PATH))
-        {
+        if (messageEvent.getPath().equalsIgnoreCase(SEND_WOEID_PATH)){
             KeySaver.saveShare(getApplicationContext(), "woeid", new String(messageEvent.getData()));
+
+        }
+
+        if (messageEvent.getPath().equalsIgnoreCase(SEND_ANALOG_PATH)){
+
+            String isTrue = new String(messageEvent.getData());
+
+            if(isTrue.contentEquals("true")){
+                KeySaver.saveShare(getApplicationContext(), "analog", new String(messageEvent.getData()));
+            } else if (isTrue.contentEquals("false")) {
+                KeySaver.removeKey(getApplicationContext(), "analog");
+            }
+
+
+        }
+
+        if (messageEvent.getPath().equalsIgnoreCase(SEND_CTOF_PATH)){
+
+            String isTrue = new String(messageEvent.getData());
+
+            if(isTrue.contentEquals("true")){
+                KeySaver.saveShare(getApplicationContext(), "fahrenheit", new String(messageEvent.getData()));
+            } else if (isTrue.contentEquals("false")) {
+                KeySaver.removeKey(getApplicationContext(), "fahrenheit");
+            }
 
         }
 
@@ -116,6 +148,25 @@ public class ListenerService extends WearableListenerService {
     }
 
     public static void LOGD(final String tag, String message) {
+
+    }
+
+    public void sendMessageWear(final String path, final String text){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+                for (Node node : nodes.getNodes()) {
+                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), path, text.getBytes())
+                            .setResultCallback(new ResultCallback<MessageApi.SendMessageResult>() {
+                                @Override
+                                public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                                    Log.d("LOGUEO", "SendMessageStatus: " + sendMessageResult.getStatus());
+                                }
+                            });
+                }
+            }
+        }).start();
 
     }
 

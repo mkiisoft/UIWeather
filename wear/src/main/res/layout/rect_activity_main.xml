@@ -68,7 +68,7 @@
         android:layout_height="80dp"
         android:id="@+id/request_weather"
         android:layout_centerInParent="true"
-        android:src="@drawable/download" />
+        android:src="@drawable/offline" />
 
     <ProgressBar
         android:layout_width="wrap_content"

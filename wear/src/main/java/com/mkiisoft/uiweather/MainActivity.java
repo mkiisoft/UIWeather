@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -52,6 +53,7 @@ import com.mkiisoft.uiweather.weather.WindView;
 
 import java.io.InputStream;
 import java.security.Key;
+import java.util.List;
 
 public class MainActivity extends Activity implements DataApi.DataListener,
         MessageApi.MessageListener,
@@ -62,16 +64,17 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingError = false;
 
-    private static int REQUEST_IMAGE_CAPTURE = 1;
+    private int REQUEST_IMAGE_CAPTURE = 1;
 
-    private static final String SEND_TEMP_PATH        = "/send-temp";
-    private static final String SEND_CITY_PATH        = "/send-city";
-    private static final String SEND_CODE_PATH        = "/send-code";
-    private static final String SEND_BITMAP_PATH      = "/send-bitmap";
-    private static final String SEND_MODEL_PATH       = "/send-model";
-    private static final String SEND_UPDATE_PATH      = "/send-update";
+    private final String SEND_TEMP_PATH        = "/send-temp";
+    private final String SEND_CITY_PATH        = "/send-city";
+    private final String SEND_CODE_PATH        = "/send-code";
+    private final String SEND_BITMAP_PATH      = "/send-bitmap";
+    private final String SEND_MODEL_PATH       = "/send-model";
+    private final String SEND_UPDATE_PATH      = "/send-update";
+    private final String SEND_UPDATE_CODE      = "/send-update-code";
 
-    private static final String SEND_REQUEST_PATH     = "/send-request";
+    private final String SEND_REQUEST_PATH     = "/send-request";
 
     // Views
     private TextView     mTextTemp, mTextCity;
@@ -180,24 +183,32 @@ public class MainActivity extends Activity implements DataApi.DataListener,
                     }
                 });
 
-                mRequest.setVisibility(View.VISIBLE);
-                mRequest.setEnabled(true);
+                if (!mIsConnected) {
 
-                mRequest.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mRequest.setVisibility(View.GONE);
-                        mRequest.setEnabled(false);
-                        mProgressBar.setVisibility(View.VISIBLE);
+                    mRequest.setVisibility(View.VISIBLE);
+                    mRequest.setEnabled(true);
+                    mRequest.setImageDrawable(getDrawable(R.drawable.wellcome));
 
-                        if (KeySaver.isExist(getApplicationContext(), "woeid")) {
-                            sendMessageWear(SEND_REQUEST_PATH, KeySaver.getStringSavedShare(getApplicationContext(), "woeid"));
-                        } else {
-                            sendMessageWear(SEND_REQUEST_PATH, mWoeid);
+                    mRequest.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            if(mIsConnected){
+                                mRequest.setVisibility(View.GONE);
+                                mRequest.setEnabled(false);
+                                mProgressBar.setVisibility(View.VISIBLE);
+
+                                if (KeySaver.isExist(getApplicationContext(), "woeid")) {
+                                    sendMessageWear(SEND_REQUEST_PATH, KeySaver.getStringSavedShare(getApplicationContext(), "woeid"));
+                                } else {
+                                    sendMessageWear(SEND_REQUEST_PATH, mWoeid);
+                                }
+                            } else {
+                                Toast.makeText(MainActivity.this, "Device not connected", Toast.LENGTH_SHORT).show();
+                            }
                         }
-
-                    }
-                });
+                    });
+                }
             }
         });
 
@@ -257,8 +268,9 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         Wearable.MessageApi.addListener(mGoogleApiClient, this);
         Wearable.DataApi.addListener(mGoogleApiClient, this);
         Wearable.NodeApi.addListener(mGoogleApiClient, this);
-        mIsConnected = true;
+
         sendMessageWear(SEND_MODEL_PATH, deviceName);
+        new WearAsyncTask().execute("");
     }
 
     @Override
@@ -308,6 +320,11 @@ public class MainActivity extends Activity implements DataApi.DataListener,
                     conditionCode(codes);
                 } else if (messageEvent.getPath().equalsIgnoreCase(SEND_UPDATE_PATH)) {
                     mTextTemp.setText(new String(messageEvent.getData()));
+                } else if (messageEvent.getPath().equalsIgnoreCase(SEND_UPDATE_CODE)) {
+                    int codes = Integer.parseInt(new String(messageEvent.getData()));
+                    mWeatherIcon.removeAllViews();
+
+                    conditionCode(codes);
                 }
             }
         });
@@ -375,11 +392,28 @@ public class MainActivity extends Activity implements DataApi.DataListener,
 
             if(bitmap != null) {
                 setBackgroundImage(bitmap);
+                new saveBitmap().execute(bitmap);
             }
         }
 
         @Override
         protected void onCancelled(){
+
+        }
+    }
+
+    private class saveBitmap extends AsyncTask<Bitmap, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Bitmap... params) {
+
+            KeySaver.saveShare(MainActivity.this, "bitmapBg", Utils.BitMapToString(params[0]));
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
 
         }
     }
@@ -476,6 +510,42 @@ public class MainActivity extends Activity implements DataApi.DataListener,
             mWeatherIcon.addView(cloudSnowView);
         } else if (code == 3200) {
             mWeatherIcon.addView(sunView);
+        } else {
+            mWeatherIcon.addView(sunView);
+        }
+    }
+
+    private class WearAsyncTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            List<Node> connectedNodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await().getNodes();
+            if (connectedNodes.size() > 0) {
+                Log.e("Wear Conectado!", "SI!");
+                mIsConnected = true;
+            } else {
+                Log.e("Wear Conectado!", "NO!");
+            }
+
+            return "Executed";
+        }
+
+        @Override
+        protected void onPostExecute(String post) {
+
+            if (KeySaver.isExist(getApplicationContext(), "woeid") && mIsConnected) {
+                sendMessageWear(SEND_REQUEST_PATH, KeySaver.getStringSavedShare(getApplicationContext(), "woeid"));
+            } else if (mIsConnected){
+                sendMessageWear(SEND_REQUEST_PATH, mWoeid);
+            } else {
+                mRequest.setImageDrawable(getDrawable(R.drawable.offline));
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+
         }
     }
 }

@@ -5,5 +5,9 @@
         <attr name="strokeColor" format="color" />
         <attr name="bgColor" format="color" />
     </declare-styleable>
-
+    <declare-styleable name="Analog24HClock">
+        <attr name="face" format="reference" />
+        <attr name="minute_hand" format="reference" />
+        <attr name="hour_hand" format="reference" />
+    </declare-styleable>
 </resources>
