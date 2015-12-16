@@ -65,7 +65,6 @@ Import project as issual with any other Android Studio project. This project doe
   * Settings:
     * Celsius or Fahrenheit
     * Allow Geo location
-* Better API response
 * Google Maps Geo Position
 
 License
