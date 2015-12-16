@@ -11,8 +11,8 @@
     <string name="emptystring"></string>
 
     <!-- api URLs -->
-    <string name="api_url_query">http://catchweather.com/api/query.php?key=ABARAJAMEENLABANIERANENA&amp;format=json&amp;q=</string>
-    <string name="api_url_woeid">http://catchweather.com/api/forecast.php?key=ABARAJAMEENLABANIERANENA&amp;format=json2&amp;woeid=</string>
+    <string name="api_url_query">http://catchweather.com/api/query.php?key=ABARAJAMEENLABANIERANENAS&amp;format=json&amp;q=</string>
+    <string name="api_url_woeid">http://catchweather.com/api/forecast.php?key=ABARAJAMEENLABANIERANENAS&amp;format=json2&amp;woeid=</string>
     <!-- image full -->
     <string name="copyright">Copyright protected image. Can\'t be modify.</string>
     <string name="undo">Cancel</string>
