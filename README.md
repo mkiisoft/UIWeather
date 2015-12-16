@@ -17,7 +17,9 @@ Material Design from Android 4.1+ (API 16+)
 
 New available: [Android 4.1+ v0.2b](http://bit.ly/1QOy3av)
 
-**Soon on Play Store**
+Play Store:
+![Play Store](http://i.imgur.com/DcdeWpG.png)
+
 
 # Install
 
