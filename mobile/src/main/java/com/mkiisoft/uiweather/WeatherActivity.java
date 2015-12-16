@@ -597,7 +597,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
-
                     JSONObject getResponse = new JSONObject("" + response);
                     JSONObject getPlaces = getResponse.getJSONObject("places");
                     final int getTotal = getPlaces.getInt("total");
@@ -715,8 +714,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     final JSONObject data = queryObject.getJSONObject("datos");
                     temp = data.getString("temp");
                     code = data.getString("code");
-
-                    Log.e("code", code);
 
                     JSONArray forecast = jsonWeather.getJSONArray("forecast");
                     final JSONArray photos = jsonWeather.getJSONArray("fotos");

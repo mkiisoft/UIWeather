@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">UIWeather</string>
-    <string name="version_app">UIWeather v0.5</string>
+    <string name="version_app">UIWeather v0.7</string>
 
     <!-- paging gridview -->
     <string name="loading">Loading&#8230;</string>

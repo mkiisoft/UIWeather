@@ -103,7 +103,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private String deviceName;
 
     private boolean mIsConnected = false;
-    private String  mWoeid       = "468739";
+    private String  mWoeid       = "2459115";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
