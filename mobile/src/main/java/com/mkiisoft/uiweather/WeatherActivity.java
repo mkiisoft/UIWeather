@@ -129,7 +129,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
     // Views
     private View mLineColor;
-    private ImageView toSettings;
+    private RelativeLayout toSettings;
     private RelativeLayout mMainBg;
     private LinearLayout mWeatherIcon;
     private SquareImageView mWeatherImage;
@@ -290,7 +290,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         mMainBtn   = (FrameLayout)    findViewById(R.id.btn_main);
         mChildTemp = (RelativeLayout) findViewById(R.id.temp_child);
 
-        toSettings = (ImageView) findViewById(R.id.to_settings);
+        toSettings = (RelativeLayout) findViewById(R.id.to_settings);
         toSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

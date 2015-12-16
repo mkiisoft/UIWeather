@@ -260,12 +260,12 @@
     <RelativeLayout
         android:layout_width="60dp"
         android:layout_height="45dp"
-        android:layout_marginTop="60dp">
+        android:layout_marginTop="55dp"
+        android:id="@+id/to_settings">
 
         <ImageView
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:id="@+id/to_settings"
             android:src="@drawable/settings"
             android:layout_alignParentRight="true"
             android:layout_alignParentLeft="false"
