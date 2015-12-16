@@ -66,7 +66,7 @@ public class ListenerService extends WearableListenerService {
     private final String SEND_CITY_PATH          = "/send-city";
     private final String SEND_CODE_PATH          = "/send-code";
     private final String SEND_UPDATE_PATH        = "/send-update";
-    private final String SEND_UPDATE_CODE      = "/send-update-code";
+    private final String SEND_UPDATE_CODE        = "/send-update-code";
 
     private final String SEND_BITMAP_PATH        = "/send-bitmap";
 

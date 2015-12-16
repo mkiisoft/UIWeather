@@ -47,4 +47,8 @@
     <string name="connection">No connection available. Try again later.</string>
     <string name="no_results">Try to be more specific in your search</string>
 
+    <!-- settings -->
+    <string name="wear_connected">connected</string>
+    <string name="wear_connected_not">Android Wear not connected</string>
+
 </resources>

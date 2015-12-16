@@ -57,6 +57,6 @@
         android:shadowRadius="2"
         android:shadowDx="1"
         android:shadowDy="1"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
 </RelativeLayout>

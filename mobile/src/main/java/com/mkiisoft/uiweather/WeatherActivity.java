@@ -127,6 +127,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     // API Strings URIs
     private String mApiCatchQuery, mApiCatchWoeid;
 
+    // Views
     private View mLineColor;
     private ImageView toSettings;
     private RelativeLayout mMainBg;
@@ -135,6 +136,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private TextView mTitleCity, mTextType;
     private AutoFitTextView mTextTemp;
 
+    // FAB states
     public final int FAB_STATE_COLLAPSED = 0;
     public final int FAB_STATE_EXPANDED = 1;
 
@@ -157,6 +159,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private CloudMoonView cloudMoonView;
     private CloudSnowView cloudSnowView;
 
+    // Temperature settings
     String Fahrenheit = "\u00B0F";
     String Celsius = "\u00B0C";
     int celsiusTemp;
@@ -201,7 +204,11 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private boolean mResolvingError = false;
     private boolean mIsConnected = false;
 
+    //  TAG
     private final String TAG = "Wear";
+
+    // Wear device name
+    private String wearModel = "Android Wear";
 
     /**
      * Request code for launching the Intent to resolve Google Play services errors.
@@ -216,7 +223,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     private final String SEND_MODEL_PATH = "/send-model";
     private final String SEND_WOEID_PATH = "/send-woeid";
 
-    private final int REQUEST_IMAGE_CAPTURE = 1;
+    private final int REQUEST_SETTINGS = 1001;
 
     private LinearLayout mWearLayout;
     private TextView mWearModel;
@@ -288,7 +295,9 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(WeatherActivity.this, WeatherSettings.class);
-                startActivity(i);
+                i.putExtra("wear", mIsConnected);
+                i.putExtra("model", wearModel);
+                startActivityForResult(i, REQUEST_SETTINGS);
             }
         });
 
@@ -437,11 +446,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         mTextType = (TextView) findViewById(R.id.text_type);
         mTextTemp.setTypeface(thin);
         mTextType.setTypeface(font);
-
-//        if (Utils.determineScreenDensity(WeatherActivity.this) <= 2) {
-//            mTextTemp.setTextSize(60);
-//            mTextType.setTextSize(40);
-//        }
 
         connready = Utils.testConection(this);
         if (connready) {
@@ -802,6 +806,16 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                                                 sendPhoto(Utils.toAsset(finalBitmap));
                                                 sendMessageWear(SEND_CITY_PATH, mName + " " + mCode);
                                             }
+
+                                            if(mTextType.getText().toString().contentEquals(Celsius) && KeySaver.isExist(WeatherActivity.this, "is_fahrenheit")){
+
+                                                new Handler().postDelayed(new Runnable() {
+                                                    public void run() {
+                                                        mTextType.performClick();
+                                                    }
+                                                }, 500);
+
+                                            }
                                         }
 
                                         @Override
@@ -899,6 +913,23 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == REQUEST_SETTINGS) {
+            if(resultCode == WeatherActivity.RESULT_OK){
+                if(mTextType.getText().toString().contentEquals(Celsius) && KeySaver.isExist(WeatherActivity.this, "is_fahrenheit")){
+                    mTextType.performClick();
+                } else  if (mTextType.getText().toString().contentEquals(Fahrenheit) && !KeySaver.isExist(WeatherActivity.this, "is_fahrenheit")) {
+                    mTextType.performClick();
+                }
+            }
+            if (resultCode == WeatherActivity.RESULT_CANCELED) {
+
+            }
+        }
     }
 
     public void initCustomWeatherViews() {
@@ -1290,9 +1321,10 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
             String Unknown = new String(messageEvent.getData());
 
             if (Unknown.contains("Unknown")) {
-                mWearModel.setText("Android Wear");
+                mWearModel.setText(wearModel);
             } else {
-                mWearModel.setText(new String(messageEvent.getData()));
+                wearModel = new String(messageEvent.getData());
+                mWearModel.setText(wearModel);
             }
 
             if (mWearLayout.getVisibility() == View.INVISIBLE) {

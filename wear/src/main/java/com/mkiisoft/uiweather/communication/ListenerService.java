@@ -128,9 +128,9 @@ public class ListenerService extends WearableListenerService {
             String isTrue = new String(messageEvent.getData());
 
             if(isTrue.contentEquals("true")){
-                KeySaver.saveShare(getApplicationContext(), "fahrenheit", new String(messageEvent.getData()));
+                KeySaver.saveShare(getApplicationContext(), "is_fahrenheit", new String(messageEvent.getData()));
             } else if (isTrue.contentEquals("false")) {
-                KeySaver.removeKey(getApplicationContext(), "fahrenheit");
+                KeySaver.removeKey(getApplicationContext(), "is_fahrenheit");
             }
 
         }

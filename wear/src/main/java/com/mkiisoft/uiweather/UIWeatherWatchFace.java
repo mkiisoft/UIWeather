@@ -136,7 +136,7 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
                         if(isTrue.contentEquals("true")){
                             isAnalog = true;
-                        } else if (isTrue.contentEquals("false")) {
+                        } else  {
                             isAnalog = false;
                         }
                     }
@@ -414,10 +414,10 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             mClock.setTime(System.currentTimeMillis());
 
             if(isAnalog){
-                clockWatchFace.setVisibility(View.GONE);
                 mClock.measure(specW, specH);
                 mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
                 mClock.draw(canvas);
+                clockWatchFace.setVisibility(View.GONE);
             } else {
                 mClock.measure(0, 0);
                 mClock.layout(0, 0, 0, 0);
@@ -425,6 +425,17 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
                 clockWatchFace.setVisibility(View.VISIBLE);
             }
 
+            if(KeySaver.isExist(UIWeatherWatchFace.this, "analog")) {
+                mClock.measure(specW, specH);
+                mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
+                mClock.draw(canvas);
+                clockWatchFace.setVisibility(View.GONE);
+            } else {
+                mClock.measure(0, 0);
+                mClock.layout(0, 0, 0, 0);
+                mClock.draw(canvas);
+                clockWatchFace.setVisibility(View.VISIBLE);
+            }
 
             if(!code.isEmpty()){
                 conditionCode(Integer.parseInt(code));

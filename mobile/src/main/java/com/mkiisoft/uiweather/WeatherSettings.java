@@ -1,6 +1,7 @@
 package com.mkiisoft.uiweather;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -11,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -37,7 +40,6 @@ public class WeatherSettings extends AppCompatActivity implements DataApi.DataLi
     private final int REQUEST_RESOLVE_ERROR = 1000;
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingError = false;
-    private boolean mIsConnected = false;
 
     // Paths to Wear Service
     private final String SEND_ANALOG_PATH = "/send-analog";
@@ -48,10 +50,20 @@ public class WeatherSettings extends AppCompatActivity implements DataApi.DataLi
     private String TRUE  = "true";
     private String FALSE = "false";
 
+    // Views
+    private ImageView mWearIcon;
+    private TextView  mWearConnect;
+
+    // Intent
+    private Intent  weatherIntent;
+    private boolean getWearState;
+
     @Override
     protected void onCreate(Bundle b){
         super.onCreate(b);
         setContentView(R.layout.activity_settings);
+
+        weatherIntent = getIntent();
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
             if (getSupportActionBar() != null) {
@@ -76,8 +88,25 @@ public class WeatherSettings extends AppCompatActivity implements DataApi.DataLi
                 .addOnConnectionFailedListener(this)
                 .build();
 
+        mWearIcon    = (ImageView) findViewById(R.id.wear_icon_settings);
+        mWearConnect = (TextView)  findViewById(R.id.wear_connected_settings);
+
         isFahrenheit = (ToggleButton) findViewById(R.id.convert_temp_toggle);
         isAnalog     = (ToggleButton) findViewById(R.id.analog_toggle);
+
+        getWearState = weatherIntent.getBooleanExtra("wear", false);
+
+        if (getWearState){
+            mWearIcon.setImageDrawable(getResources().getDrawable(R.drawable.watch));
+            mWearConnect.setText(weatherIntent.getStringExtra("model") + " " + getString(R.string.wear_connected));
+            isAnalog.setEnabled(true);
+            isAnalog.setAlpha(1.0f);
+        } else {
+            mWearIcon.setImageDrawable(getResources().getDrawable(R.drawable.watchnot));
+            mWearConnect.setText(getString(R.string.wear_connected_not));
+            isAnalog.setEnabled(false);
+            isAnalog.setAlpha(0.5f);
+        }
 
         if(KeySaver.isExist(WeatherSettings.this, "is_fahrenheit")){
             isFahrenheit.setChecked(true);
@@ -127,6 +156,13 @@ public class WeatherSettings extends AppCompatActivity implements DataApi.DataLi
             }
         });
 
+    }
+
+    @Override
+    public void onBackPressed(){
+        Intent returnIntent = new Intent();
+        setResult(WeatherSettings.RESULT_OK, returnIntent);
+        finish();
     }
 
     @Override
@@ -225,6 +261,8 @@ public class WeatherSettings extends AppCompatActivity implements DataApi.DataLi
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                Intent returnIntent = new Intent();
+                setResult(WeatherSettings.RESULT_OK, returnIntent);
                 finish();
                 return true;
             default:

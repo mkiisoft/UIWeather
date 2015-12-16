@@ -15,7 +15,7 @@
         android:paddingTop="20dp"
         android:textSize="20dp"
         android:textColor="@color/white"
-        android:layout_marginTop="80dp" />
+        android:layout_marginTop="100dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -111,6 +111,31 @@
                 android:layout_marginBottom="10dp" />
         </LinearLayout>
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/wear_icon_settings"
+            android:src="@drawable/watch"
+            android:layout_marginLeft="8dp"
+            android:padding="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Android Wear Connected"
+            android:id="@+id/wear_connected_settings"
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:textSize="15dp" />
     </LinearLayout>
 
     <RelativeLayout
