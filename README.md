@@ -10,8 +10,8 @@ Material Design from Android 4.1+ (API 16+)
 
 ![UIWeather](http://i.imgur.com/bLqeUeW.png) ![UIWeather](http://i.imgur.com/KNG7zP3.png) ![UIWeather](http://i.imgur.com/LZRl0Mq.png) ![UIWeather](http://i.imgur.com/g0UlNBE.png)
 
-![UIWeather](http://i.imgur.com/JDCHrTr.png) ![UIWeather](http://i.imgur.com/Wthg3Ah.png)
-![UIWeather](http://i.imgur.com/iNCahp2.png) ![UIWeather](http://i.imgur.com/zToxu2K.png)
+![UIWeather](http://i.imgur.com/JDCHrTr.png) ![UIWeather](http://i.imgur.com/ZmkWaQ2.png)
+![UIWeather](http://i.imgur.com/PxtyzNb.png) ![UIWeather](http://i.imgur.com/mLx4g86.png)
 
 # Download
 
