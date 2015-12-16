@@ -716,6 +716,8 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     temp = data.getString("temp");
                     code = data.getString("code");
 
+                    Log.e("code", code);
+
                     JSONArray forecast = jsonWeather.getJSONArray("forecast");
                     final JSONArray photos = jsonWeather.getJSONArray("fotos");
 
@@ -856,10 +858,10 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                                 mWeatherIcon.addView(rainView);
                             } else if (codes == 31) {
                                 mWeatherIcon.addView(moonView);
-                            } else if ((codes >= 5 && codes <= 8) || (codes >= 13 && codes <= 19)) {
+                            } else if ((codes >= 5 && codes <= 8) || (codes >= 13 && codes <= 18)) {
                                 mWeatherIcon.addView(cloudSnowView);
-                            } else if (codes == 46) {
-                                mWeatherIcon.addView(cloudSnowView);
+                            } else if (codes == 19) {
+                                mWeatherIcon.addView(windView);
                             } else if (codes == 3200) {
                                 mWeatherIcon.addView(sunView);
                             } else {

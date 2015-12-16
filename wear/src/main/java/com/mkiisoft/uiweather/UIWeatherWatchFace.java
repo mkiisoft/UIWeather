@@ -580,10 +580,12 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.rainview));
         } else if (code == 31) {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.moonview));
-        } else if ((code >= 5 && code <= 8) || (code >= 13 && code <= 19)) {
+        }  else if ((code >= 5 && code <= 8) || (code >= 13 && code <= 18)) {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.cloudsnowview));
         } else if (code == 46) {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.cloudsnowview));
+        } else if (code == 19) {
+            codeWatchFace.setImageDrawable(getDrawable(R.drawable.windview));
         } else if (code == 3200) {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.sunview));
         } else {

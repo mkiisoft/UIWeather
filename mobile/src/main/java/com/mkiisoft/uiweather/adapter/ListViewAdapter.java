@@ -193,9 +193,13 @@ public class ListViewAdapter extends BaseAdapter {
                 viewHolder.mForecastIcon.addView(rainView);
             } else if (codes == 31) {
                 viewHolder.mForecastIcon.addView(moonView);
-            } else if ((codes >= 5 && codes <= 8) || (codes >= 13 && codes <= 19)) {
+            } else if ((codes >= 5 && codes <= 8) || (codes >= 13 && codes <= 18)) {
                 viewHolder.mForecastIcon.addView(cloudSnowView);
+            } else if (codes == 19) {
+                viewHolder.mForecastIcon.addView(windView);
             } else if (codes == 3200) {
+                viewHolder.mForecastIcon.addView(sunView);
+            } else {
                 viewHolder.mForecastIcon.addView(sunView);
             }
 
