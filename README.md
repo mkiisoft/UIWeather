@@ -15,7 +15,7 @@ Material Design from Android 4.1+ (API 16+)
 
 # Download
 
-New available: [Android 4.1+ v0.2b](http://bit.ly/1TQobLa)
+New available: [Android 4.1+ v0.7b](http://bit.ly/1TQobLa)
 
 [![Play Store](http://i.imgur.com/DcdeWpG.png)](https://play.google.com/store/apps/details?id=com.mkiisoft.uiweather "UIWeather Play Store")
 
