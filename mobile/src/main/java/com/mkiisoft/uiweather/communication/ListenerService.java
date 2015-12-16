@@ -262,7 +262,7 @@ public class ListenerService extends WearableListenerService {
                             sendMessageWear(SEND_CODE_PATH, code);
                             sendMessageWear(SEND_TEMP_PATH, temp + Celsius);
 
-                            int ran = Utils.randInt(0, 9);
+                            int ran = Utils.randInt(0, photosObject.length());
                             mData = arraylist;
                             result = mData.get(ran);
                             final String img = result.get("url_big");
@@ -272,7 +272,6 @@ public class ListenerService extends WearableListenerService {
                                         @Override
                                         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
 
-                                            Log.e("imagen", ""+img);
                                             final Bitmap finalBitmap = (Bitmap) resource;
 
                                             sendPhoto(Utils.toAsset(finalBitmap));

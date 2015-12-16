@@ -117,15 +117,12 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
                     if (messageEvent.getPath().equalsIgnoreCase(SEND_UPDATE_CODE)) {
                         code = new String(messageEvent.getData());
-                        Log.e("mensaje!", new String(messageEvent.getData()));
                     }
 
                     if (messageEvent.getPath().equalsIgnoreCase(SEND_UPDATE_PATH)) {
                         String sub = new String(messageEvent.getData());
 
                         temp = sub.substring(0, sub.length() - 2);
-
-                        Log.e("mensaje! TEMP", new String(messageEvent.getData()));
 
                         if(KeySaver.isExist(UIWeatherWatchFace.this, "is_fahrenheit")){
                             temp = String.valueOf(Utils.convertCelciusToFahrenheit(Float.parseFloat(temp))) + "°F";
@@ -199,7 +196,6 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             for (int i = 0; i < dataEvents.getCount(); i++) {
                 DataEvent event = dataEvents.get(i);
                 DataMap dataMap = DataMap.fromByteArray(event.getDataItem().getData());
-                Log.e("data", dataMap.toString());
             }
         }
 

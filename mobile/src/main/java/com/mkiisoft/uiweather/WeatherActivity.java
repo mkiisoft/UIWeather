@@ -273,8 +273,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
         String deviceName = DeviceName.getDeviceName();
 
-        Log.e("Nombre", "" + deviceName);
-
         mProgress = (AVLoadingIndicatorView) findViewById(R.id.progress_balls);
 
         mMainBg = (RelativeLayout) findViewById(R.id.main_bg);
@@ -289,7 +287,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
         toSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("gets here?", "it should");
                 Intent i = new Intent(WeatherActivity.this, WeatherSettings.class);
                 startActivity(i);
             }
@@ -557,10 +554,7 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
 
             List<Node> connectedNodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await().getNodes();
             if (connectedNodes.size() > 0) {
-                Log.e("Wear Conectado!", "SI!");
                 mIsConnected = true;
-            } else {
-                Log.e("Wear Conectado!", "NO!");
             }
 
             return "Executed";
@@ -603,7 +597,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                     JSONObject getResponse = new JSONObject("" + response);
                     JSONObject getPlaces = getResponse.getJSONObject("places");
                     final int getTotal = getPlaces.getInt("total");
-                    Log.e("total", "" + getTotal);
 
                     if (getTotal == 0) {
                         Toast.makeText(WeatherActivity.this, getResources().getString(R.string.no_results), Toast.LENGTH_SHORT).show();
@@ -756,8 +749,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
                         forecastHash.put("date", forecastObj.getString("date"));
                         forecastHash.put("high", forecastObj.getString("high"));
                         forecastHash.put("low", forecastObj.getString("low"));
-
-                        Log.e("code", forecastObj.getString("code"));
 
                         arraylistForecast.add(forecastHash);
 
@@ -1293,7 +1284,6 @@ public class WeatherActivity extends AppCompatActivity implements DataApi.DataLi
     public void onMessageReceived(final MessageEvent messageEvent) {
 
         if (messageEvent.getPath().equalsIgnoreCase(SEND_MODEL_PATH)) {
-            Log.e("modelo", new String(messageEvent.getData()));
 
             mIsConnected = true;
 

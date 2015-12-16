@@ -1,7 +1,6 @@
 package com.mkiisoft.uiweather;
 
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -9,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
