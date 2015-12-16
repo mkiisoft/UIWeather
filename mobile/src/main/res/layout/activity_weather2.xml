@@ -269,7 +269,8 @@
             android:src="@drawable/settings"
             android:layout_alignParentRight="true"
             android:layout_alignParentLeft="false"
-            android:padding="10dp" />
+            android:padding="10dp"
+            android:layout_marginRight="5dp" />
     </RelativeLayout>
 
 </RelativeLayout>
