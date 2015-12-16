@@ -72,8 +72,8 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
     protected long mWeatherInfoReceivedTime;
     protected long mWeatherInfoRequiredTime;
-    //14400000
-    protected int mRequireInterval = 10000;
+    //10000 for testing
+    protected int mRequireInterval = 14400000;
 
     protected Resources mResources;
     protected AssetManager mAsserts;
