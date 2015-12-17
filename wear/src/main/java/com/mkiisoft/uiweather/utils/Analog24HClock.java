@@ -37,6 +37,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -103,12 +105,12 @@ public class Analog24HClock extends View {
 
         Drawable hourHand = attrs.getDrawable(R.styleable.Analog24HClock_hour_hand);
         if (hourHand == null) {
-            hourHand = context.getResources().getDrawable(R.drawable.hour);
+            hourHand = new ColorDrawable(Color.TRANSPARENT);//context.getResources().getDrawable(R.drawable.hour);
         }
 
         Drawable minuteHand = attrs.getDrawable(R.styleable.Analog24HClock_minute_hand);
         if (minuteHand == null) {
-            minuteHand = context.getResources().getDrawable(R.drawable.minutes);
+            minuteHand = new ColorDrawable(Color.TRANSPARENT);//context.getResources().getDrawable(R.drawable.minutes);
         }
 
         mCalendar = Calendar.getInstance();

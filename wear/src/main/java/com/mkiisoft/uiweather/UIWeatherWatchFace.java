@@ -6,18 +6,25 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.SyncStateContract;
 import android.support.wearable.watchface.CanvasWatchFaceService;
+import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateUtils;
 import android.text.format.Time;
@@ -53,6 +60,12 @@ import com.mkiisoft.uiweather.utils.SunPositionOverlay;
 import com.mkiisoft.uiweather.utils.Utils;
 
 import java.lang.ref.WeakReference;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -94,8 +107,38 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
     private String temp = "";
     private String code = "";;
     private Analog24HClock mClock;
-    private SunPositionOverlay mSunPositionOverlay;
     private float celsiusf, fahrenheitf;
+    private Calendar mCalendar;
+
+    // analog clock
+
+
+    private static final float HOUR_STROKE_WIDTH = 10f;
+    private static final float MINUTE_STROKE_WIDTH = 6f;
+
+    private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 4f;
+
+    private static final int SHADOW_RADIUS = 6;
+
+    private boolean mRegisteredTimeZoneReceiver = false;
+    private boolean mMuteMode;
+
+    private float mCenterX;
+    private float mCenterY;
+
+    private float sMinuteHandLength;
+    private float sHourHandLength;
+
+    /* Colors for all hands (hour, minute, seconds, ticks) based on photo loaded. */
+    private int mWatchHandColor;
+    private int mWatchHandHightlightColor;
+    private int mWatchHandShadowColor;
+
+    private Paint mHourPaint;
+    private Paint mMinutePaint;
+    private Paint mTickAndCirclePaint;
+
+    private Rect mPeekCardBounds = new Rect();
 
     @Override
     public Engine onCreateEngine() {
@@ -218,18 +261,6 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
         }
 
-        final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mTime.clear(intent.getStringExtra("time-zone"));
-                mTime.setToNow();
-
-                mClock.setTimezone(TimeZone.getTimeZone(intent.getStringExtra("time-zone")));
-            }
-        };
-
-        boolean mRegisteredTimeZoneReceiver = false;
-
         boolean mAmbient;
 
         Time mTime;
@@ -280,7 +311,6 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             clockWatchFace = (TextView)  myLayout.findViewById(R.id.clock_watchface);
 
             mClock = new Analog24HClock(UIWeatherWatchFace.this);
-            mSunPositionOverlay = new SunPositionOverlay(UIWeatherWatchFace.this);
 
             initializeClock();
 
@@ -288,8 +318,35 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
             mTime = new Time();
 
+            mCalendar = Calendar.getInstance();
+
             mWeatherInfoRequiredTime = System.currentTimeMillis() - (DateUtils.SECOND_IN_MILLIS * 58);
             mGoogleApiClient.connect();
+
+            mWatchHandColor = Color.WHITE;
+            mWatchHandHightlightColor = Color.RED;
+            mWatchHandShadowColor = Color.BLACK;
+
+            mHourPaint = new Paint();
+            mHourPaint.setColor(mWatchHandColor);
+            mHourPaint.setStrokeWidth(HOUR_STROKE_WIDTH);
+            mHourPaint.setAntiAlias(true);
+            mHourPaint.setStrokeCap(Paint.Cap.ROUND);
+            mHourPaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
+
+            mMinutePaint = new Paint();
+            mMinutePaint.setColor(mWatchHandColor);
+            mMinutePaint.setStrokeWidth(MINUTE_STROKE_WIDTH);
+            mMinutePaint.setAntiAlias(true);
+            mMinutePaint.setStrokeCap(Paint.Cap.ROUND);
+            mMinutePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
+
+            mTickAndCirclePaint = new Paint();
+            mTickAndCirclePaint.setColor(mWatchHandColor);
+            mTickAndCirclePaint.setStrokeWidth(CENTER_GAP_AND_CIRCLE_RADIUS);
+            mTickAndCirclePaint.setAntiAlias(true);
+            mTickAndCirclePaint.setStyle(Paint.Style.STROKE);
+            mTickAndCirclePaint.setShadowLayer(SHADOW_RADIUS, 0, 0, mWatchHandShadowColor);
         }
 
         @Override
@@ -301,6 +358,16 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
         @Override
         public void onInterruptionFilterChanged(int interruptionFilter) {
             super.onInterruptionFilterChanged(interruptionFilter);
+
+            boolean inMuteMode = (interruptionFilter == WatchFaceService.INTERRUPTION_FILTER_NONE);
+
+            /* Dim display in mute mode. */
+            if (mMuteMode != inMuteMode) {
+                mMuteMode = inMuteMode;
+                mHourPaint.setAlpha(inMuteMode ? 100 : 255);
+                mMinutePaint.setAlpha(inMuteMode ? 100 : 255);
+                invalidate();
+            }
         }
 
         private Paint createTextPaint(int textColor) {
@@ -312,16 +379,32 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+
+            mCenterX = width / 2f;
+            mCenterY = height / 2f;
+
+            sMinuteHandLength = (float) (mCenterX * 0.75);
+            sHourHandLength = (float) (mCenterX * 0.5);
+
+        }
+
+        @Override
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
 
             if (visible) {
                 mGoogleApiClient.connect();
-                registerReceiver();
+                registerTimeZoneReceiver();
+
+                mCalendar.setTimeZone(TimeZone.getDefault());
+
                 // Update time zone in case it changed while we weren't visible.
                 mTime.clear(TimeZone.getDefault().getID());
                 mTime.setToNow();
-                mClock.setTimezone(TimeZone.getDefault());
+                //mClock.setTimezone(TimeZone.getDefault());
+                invalidate();
 
             } else {
 
@@ -332,7 +415,7 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
                     mGoogleApiClient.disconnect();
                 }
 
-                unregisterReceiver();
+                unregisterTimeZoneReceiver();
             }
 
             // Whether the timer should be running depends on whether we're visible (as well as
@@ -340,19 +423,24 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             updateTimer();
         }
 
-        private void registerReceiver() {
+        private void registerTimeZoneReceiver() {
             if (mRegisteredTimeZoneReceiver) {
                 return;
             }
+
             mRegisteredTimeZoneReceiver = true;
-            IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
+            final IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_TIME_CHANGED);
+            filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+
             UIWeatherWatchFace.this.registerReceiver(mTimeZoneReceiver, filter);
         }
 
-        private void unregisterReceiver() {
+        private void unregisterTimeZoneReceiver() {
             if (!mRegisteredTimeZoneReceiver) {
                 return;
             }
+
             mRegisteredTimeZoneReceiver = false;
             UIWeatherWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
         }
@@ -392,8 +480,32 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             updateTimer();
         }
 
+        boolean mRegisteredTimeZoneReceiver = false;
+
+        final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+
+                Log.e("log broadcast", intent.getExtras().toString());
+                mTime.clear(intent.getStringExtra("time-zone"));
+                mTime.setToNow();
+
+                mCalendar.setTimeZone(TimeZone.getDefault());
+                invalidate();
+
+                Log.e("horario", intent.getStringExtra("time-zone"));
+
+                if (intent.hasExtra("time-zone")) {
+                    mClock.setTimezone(TimeZone.getTimeZone(intent.getStringExtra("time-zone")));
+                }
+            }
+        };
+
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
+
+            long now = System.currentTimeMillis();
+            mCalendar.setTimeInMillis(now);
 
             canvas.save();
 
@@ -411,30 +523,58 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
             clockWatchFace.setText(text);
 
-            mClock.setTime(System.currentTimeMillis());
+            if(isAnalog || KeySaver.isExist(UIWeatherWatchFace.this, "analog")){
+                analogOrDigital(true, specW, specH, canvas, myLayout);
 
-            if(isAnalog){
-                mClock.measure(specW, specH);
-                mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
-                mClock.draw(canvas);
-                clockWatchFace.setVisibility(View.GONE);
-            } else {
-                mClock.measure(0, 0);
-                mClock.layout(0, 0, 0, 0);
-                mClock.draw(canvas);
-                clockWatchFace.setVisibility(View.VISIBLE);
-            }
+                final float minutesRotation = mCalendar.get(Calendar.MINUTE) * 6f;
 
-            if(KeySaver.isExist(UIWeatherWatchFace.this, "analog")) {
-                mClock.measure(specW, specH);
-                mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
-                mClock.draw(canvas);
-                clockWatchFace.setVisibility(View.GONE);
+                final float hourHandOffset = mCalendar.get(Calendar.MINUTE) / 2f;
+                final float hoursRotation = (mCalendar.get(Calendar.HOUR) * 30) + hourHandOffset;
+
+                canvas.rotate(hoursRotation, mCenterX, mCenterY);
+                canvas.drawLine(
+                        mCenterX,
+                        mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
+                        mCenterX,
+                        mCenterY - sHourHandLength,
+                        mHourPaint);
+
+                canvas.rotate(minutesRotation - hoursRotation, mCenterX, mCenterY);
+                canvas.drawLine(
+                        mCenterX,
+                        mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
+                        mCenterX,
+                        mCenterY - sMinuteHandLength,
+                        mMinutePaint);
+
+                canvas.drawCircle(
+                        mCenterX,
+                        mCenterY,
+                        CENTER_GAP_AND_CIRCLE_RADIUS,
+                        mTickAndCirclePaint);
+
             } else {
-                mClock.measure(0, 0);
-                mClock.layout(0, 0, 0, 0);
-                mClock.draw(canvas);
-                clockWatchFace.setVisibility(View.VISIBLE);
+                analogOrDigital(false, 0, 0, canvas, myLayout);
+
+                canvas.drawLine(
+                        0,
+                        0,
+                        0,
+                        0,
+                        new Paint());
+
+                canvas.drawLine(
+                        0,
+                        0,
+                        0,
+                        0,
+                        new Paint());
+
+                canvas.drawCircle(
+                        0,
+                        0,
+                        0,
+                        new Paint());
             }
 
             if(!code.isEmpty()){
@@ -447,9 +587,6 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
 
         private void initializeClock() {
             mClock.clearDialOverlays();
-            mSunPositionOverlay.setScale(SUN_POSITION_OVERLAY_SCALE);
-            mSunPositionOverlay.setShadeAlpha(60);
-            mClock.addDialOverlay(mSunPositionOverlay);
 
             final DateOverlay dateOverlay = new DateOverlay(0.1875f, -0.1875f, 0.0625f);
             mClock.addDialOverlay(dateOverlay);
@@ -466,16 +603,17 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             return isVisible() && !isInAmbientMode();
         }
 
-        protected final Handler mUpdateTimeHandler = new Handler() {
+        final Handler mUpdateTimeHandler = new Handler() {
             @Override
-            public void handleMessage(Message message) {
+            public void handleMessage(final Message message) {
                 switch (message.what) {
                     case MSG_UPDATE_TIME:
                         invalidate();
 
                         if (shouldTimerBeRunning()) {
-                            long timeMs = System.currentTimeMillis();
-                            long delayMs = 1000 - (timeMs % 1000);
+                            final long timeMs = System.currentTimeMillis();
+                            final long delayMs = INTERACTIVE_UPDATE_RATE_MS -
+                                    (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                             mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
                             requireWeatherInfo();
                         }
@@ -590,6 +728,21 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.sunview));
         } else {
             codeWatchFace.setImageDrawable(getDrawable(R.drawable.sunview));
+        }
+    }
+
+    public void analogOrDigital(Boolean isAnalog, int specW, int specH, Canvas canvas, View myLayout) {
+        if(isAnalog){
+            mClock.measure(specW, specH);
+            mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
+            mClock.draw(canvas);
+            clockWatchFace.setVisibility(View.GONE);
+
+        } else {
+            mClock.measure(0, 0);
+            mClock.layout(0, 0, 0, 0);
+            mClock.draw(canvas);
+            clockWatchFace.setVisibility(View.VISIBLE);
         }
     }
 }

@@ -243,7 +243,7 @@ public class ListenerService extends WearableListenerService {
 
                     } else {
 
-                        for (int imgs = 0; imgs < 10; imgs++) {
+                        for (int imgs = 0; imgs < 7; imgs++) {
 
                             HashMap<String, String> images = new HashMap<>();
 
@@ -262,7 +262,7 @@ public class ListenerService extends WearableListenerService {
                             sendMessageWear(SEND_CODE_PATH, code);
                             sendMessageWear(SEND_TEMP_PATH, temp + Celsius);
 
-                            int ran = Utils.randInt(0, photosObject.length());
+                            int ran = Utils.randInt(0, photosObject.length() -1);
                             mData = arraylist;
                             result = mData.get(ran);
                             final String img = result.get("url_big");
