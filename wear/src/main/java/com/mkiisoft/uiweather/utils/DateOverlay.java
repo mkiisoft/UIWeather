@@ -36,7 +36,7 @@ public class DateOverlay implements DialOverlay {
         mOffsetY = offsetY;
         mTextSizeScale = textSizeScale;
         mBgPaint.setStyle(Paint.Style.FILL);
-        mBgPaint.setColor(Color.argb(255, 80, 80, 80));
+        mBgPaint.setColor(Color.argb(255, 0, 0, 0));
 
         mTextPaint.setTextAlign(Paint.Align.CENTER);
         mTextPaint.setColor(Color.argb(255, 255, 255, 255));

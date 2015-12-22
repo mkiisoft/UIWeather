@@ -113,7 +113,7 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
     // analog clock
 
 
-    private static final float HOUR_STROKE_WIDTH = 10f;
+    private static final float HOUR_STROKE_WIDTH = 8f;
     private static final float MINUTE_STROKE_WIDTH = 6f;
 
     private static final float CENTER_GAP_AND_CIRCLE_RADIUS = 4f;
@@ -486,7 +486,7 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
             @Override
             public void onReceive(final Context context, final Intent intent) {
 
-                Log.e("log broadcast", intent.getExtras().toString());
+                Log.e("log broadcast", ""+intent.getExtras().toString());
                 mTime.clear(intent.getStringExtra("time-zone"));
                 mTime.setToNow();
 
@@ -734,7 +734,11 @@ public class UIWeatherWatchFace extends CanvasWatchFaceService {
     public void analogOrDigital(Boolean isAnalog, int specW, int specH, Canvas canvas, View myLayout) {
         if(isAnalog){
             mClock.measure(specW, specH);
-            mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
+            if(myLayout.getMeasuredWidth() > myLayout.getMeasuredHeight()){
+                mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight() + 30);
+            }else{
+                mClock.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
+            }
             mClock.draw(canvas);
             clockWatchFace.setVisibility(View.GONE);
 
